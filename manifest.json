@@ -1,0 +1,26 @@
+{
+  "name": "Epsilon Hub",
+  "short_name": "Epsilon",
+  "description": "Connect. Create. Call. — Community platform for the Epsilon ecosystem.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#09090b",
+  "theme_color": "#7c3aed",
+  "categories": ["social", "utilities"],
+  "icons": [
+    {
+      "src": "https://epsilonhub.vercel.app/epsilon logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://epsilonhub.vercel.app/epsilon logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
