@@ -10,7 +10,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
-<link rel="icon" href="https://epsilonhub.vercel.app/epsilon logo.png">
+<link rel="icon" href="./epsilon logo.png">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
@@ -120,6 +120,20 @@ textarea.input-field{resize:vertical;min-height:80px}
 .page{padding:1.25rem;padding-top:4rem}
 .menu-toggle{display:flex!important}
 .auth-card{margin:.5rem}
+}
+@keyframes coinFlip {
+  0%   { transform: rotateY(0deg) scale(.6); opacity:0 }
+  40%  { transform: rotateY(540deg) scale(1.1); opacity:1 }
+  70%  { transform: rotateY(720deg) scale(.95); }
+  100% { transform: rotateY(720deg) scale(1); }
+}
+@keyframes sparkle {
+  0%   { transform: translate(0,0) scale(1); opacity:1 }
+  100% { transform: translate(var(--sx),var(--sy)) scale(0); opacity:0 }
+}
+@keyframes floatUp {
+  0%   { transform: translateY(0) scale(1); opacity:.7 }
+  100% { transform: translateY(-40px) scale(.6); opacity:0 }
 }
 </style>
 </head>
@@ -462,6 +476,38 @@ textarea.input-field{resize:vertical;min-height:80px}
     </div>
   </div>
 </div>
+<!-- TOKEN REWARD MODAL -->
+<div class="modal-overlay" id="tokenRewardModal" style="z-index:400;pointer-events:none;opacity:0;transition:opacity .35s">
+  <div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:1rem">
+    <div id="tokenRewardBox" style="background:rgba(14,14,22,.98);border:1.5px solid rgba(139,92,246,.25);border-radius:1.25rem;padding:2.25rem 2rem 1.75rem;text-align:center;max-width:360px;width:100%;box-shadow:0 32px 80px rgba(139,92,246,.18),0 0 120px rgba(139,92,246,.06);transform:scale(.85) translateY(20px);transition:transform .45s cubic-bezier(.22,1,.36,1),opacity .35s;opacity:0;position:relative;overflow:hidden">
+
+      <!-- Background glow -->
+      <div style="position:absolute;top:-60%;left:50%;transform:translateX(-50%);width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.15) 0%,transparent 70%);pointer-events:none"></div>
+
+      <!-- Sparkle particles container -->
+      <div id="tokenSparkles" style="position:absolute;inset:0;pointer-events:none;overflow:hidden"></div>
+
+      <!-- Coin -->
+      <div id="tokenCoin" style="width:80px;height:80px;border-radius:50%;background:linear-gradient(145deg,#fbbf24,#f59e0b,#d97706);margin:0 auto 1.25rem;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:900;color:#78350f;box-shadow:0 8px 32px rgba(251,191,36,.3),inset 0 2px 4px rgba(255,255,255,.25),inset 0 -2px 4px rgba(0,0,0,.15);transform:rotateY(0deg);animation:coinFlip .8s cubic-bezier(.22,1,.36,1) forwards;position:relative;z-index:1">
+        ε
+      </div>
+
+      <!-- Label -->
+      <div style="position:relative;z-index:1">
+        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#71717a;margin-bottom:.35rem" id="tokenReason">Reward</div>
+        <div style="font-size:2.4rem;font-weight:900;background:linear-gradient(135deg,#fbbf24,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.1" id="tokenAmount">+100</div>
+        <div style="font-size:.82rem;font-weight:600;color:#a78bfa;margin-top:.25rem">tokens earned</div>
+        <div style="font-size:.72rem;color:#52525b;margin-top:.6rem" id="tokenNewBalance">New balance: 1,100</div>
+      </div>
+
+      <!-- Dismiss -->
+      <button onclick="closeTokenReward()" style="margin-top:1.25rem;padding:.55rem 2rem;border-radius:9999px;background:linear-gradient(135deg,rgba(139,92,246,.15),rgba(139,92,246,.08));border:1.5px solid rgba(139,92,246,.25);color:#c4b5fd;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .25s;font-family:'Inter',sans-serif;position:relative;z-index:1" onmouseenter="this.style.background='linear-gradient(135deg,rgba(139,92,246,.25),rgba(139,92,246,.12))';this.style.borderColor='rgba(139,92,246,.4)'" onmouseleave="this.style.background='linear-gradient(135deg,rgba(139,92,246,.15),rgba(139,92,246,.08))';this.style.borderColor='rgba(139,92,246,.25)'">
+        Awesome
+      </button>
+    </div>
+  </div>
+</div>
+
 
 <!-- CALL MODAL -->
 <div class="modal-overlay" id="callModal">
@@ -2483,6 +2529,225 @@ Rules: Keep answers short and to the point. Always use clear examples and refere
       .catch((err) => console.warn('SW registration failed:', err));
   });
 }
+   </script>
+   <script>
+    (function(){
+
+  /* ───── CONFIG ───── */
+  const REWARDS = {
+    post:        { amount: 100, label: 'Post Published' },
+    idea:        { amount: 280, label: 'Idea Submitted' },
+    signup:      { amount: 200, label: 'Welcome Bonus' },
+  };
+
+  let rewardQueue = [];
+  let isShowingReward = false;
+
+  /* ───── ADD TOKENS TO DB ───── */
+  async function addTokens(userId, amount) {
+    if (!userId) return 0;
+    try {
+      // Fetch current balance
+      const { data: row, error: fetchErr } = await supabaseClient
+        .from('profiles')
+        .select('tokens')
+        .eq('id', userId)
+        .single();
+
+      if (fetchErr) throw fetchErr;
+
+      const current = row?.tokens || 0;
+      const updated = current + amount;
+
+      // Update
+      const { error: updErr } = await supabaseClient
+        .from('profiles')
+        .update({ tokens: updated })
+        .eq('id', userId);
+
+      if (updErr) throw updErr;
+
+      // Cache update
+      if (currentProfile && currentProfile.id === userId) {
+        currentProfile.tokens = updated;
+      }
+
+      return updated;
+    } catch (e) {
+      console.error('Token update failed:', e);
+      return currentProfile?.tokens || 0;
+    }
+  }
+
+  /* ───── SPARKLE PARTICLES ───── */
+  function spawnSparkles() {
+    const container = document.getElementById('tokenSparkles');
+    if (!container) return;
+    container.innerHTML = '';
+    const colors = ['#fbbf24','#f59e0b','#a78bfa','#8b5cf6','#c4b5fd','#fde68a'];
+    for (let i = 0; i < 14; i++) {
+      const dot = document.createElement('div');
+      const x = 30 + Math.random() * 40;
+      const y = 25 + Math.random() * 30;
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 40 + Math.random() * 80;
+      dot.style.cssText = `
+        position:absolute;left:${x}%;top:${y}%;width:${3+Math.random()*4}px;height:${3+Math.random()*4}px;
+        border-radius:50%;background:${colors[i%colors.length]};
+        --sx:${Math.cos(angle)*dist}px;--sy:${Math.sin(angle)*dist}px;
+        animation:sparkle ${.5+Math.random()*.5}s ease-out ${.3+Math.random()*.2}s forwards;
+        opacity:0;
+      `;
+      container.appendChild(dot);
+    }
+  }
+
+  /* ───── SHOW REWARD MODAL ───── */
+  function showTokenReward(amount, reason, newBalance) {
+    const overlay = document.getElementById('tokenRewardModal');
+    const box     = document.getElementById('tokenCoin');
+    const amtEl   = document.getElementById('tokenAmount');
+    const reasonEl= document.getElementById('tokenReason');
+    const balEl   = document.getElementById('tokenNewBalance');
+
+    if (!overlay) return;
+
+    amtEl.textContent    = '+' + amount.toLocaleString();
+    reasonEl.textContent = reason;
+    balEl.textContent    = 'New balance: ' + (newBalance || 0).toLocaleString();
+
+    // Reset coin animation
+    const coin = document.getElementById('tokenCoin');
+    if (coin) {
+      coin.style.animation = 'none';
+      coin.offsetHeight; // reflow
+      coin.style.animation = 'coinFlip .8s cubic-bezier(.22,1,.36,1) forwards';
+    }
+
+    spawnSparkles();
+
+    // Show
+    overlay.style.pointerEvents = 'auto';
+    overlay.style.opacity = '1';
+    if (box) { box.style.transform = 'scale(1) translateY(0)'; box.style.opacity = '1'; }
+
+    // Auto dismiss
+    clearTimeout(showTokenReward._timer);
+    showTokenReward._timer = setTimeout(closeTokenReward, 4000);
+  }
+
+  /* ───── CLOSE REWARD MODAL ───── */
+  window.closeTokenReward = function() {
+    clearTimeout(showTokenReward._timer);
+    const overlay = document.getElementById('tokenRewardModal');
+    const box     = overlay?.querySelector('#tokenRewardBox');
+    if (box) { box.style.transform = 'scale(.85) translateY(20px)'; box.style.opacity = '0'; }
+    setTimeout(() => {
+      if (overlay) { overlay.style.opacity = '0'; overlay.style.pointerEvents = 'none'; }
+    }, 200);
+    // Process queue
+    setTimeout(processQueue, 350);
+  };
+
+  /* ───── QUEUE SYSTEM (prevents overlap) ───── */
+  function processQueue() {
+    if (isShowingReward || rewardQueue.length === 0) return;
+    isShowingReward = true;
+    const next = rewardQueue.shift();
+    showTokenReward(next.amount, next.reason, next.balance);
+    // Mark as done after auto-dismiss or manual close
+    const checkDone = setInterval(() => {
+      const overlay = document.getElementById('tokenRewardModal');
+      if (overlay && overlay.style.opacity === '0') {
+        clearInterval(checkDone);
+        isShowingReward = false;
+        setTimeout(processQueue, 100);
+      }
+    }, 300);
+  }
+
+  function queueReward(type) {
+    const reward = REWARDS[type];
+    if (!reward || !currentUser) return;
+    rewardQueue.push({ amount: reward.amount, reason: reward.label, balance: null, type });
+    processQueue();
+  }
+
+  /* ───── PUBLIC: REWARD + DB UPDATE ───── */
+  window.rewardTokens = async function(type) {
+    const reward = REWARDS[type];
+    if (!reward || !currentUser) return;
+
+    const newBalance = await addTokens(currentUser.id, reward.amount);
+
+    // Update the queued item's balance if it exists, otherwise show directly
+    const pending = rewardQueue.find(r => r.type === type && r.balance === null);
+    if (pending) {
+      pending.balance = newBalance;
+    } else {
+      // Show immediately (shouldn't normally happen if queueReward was called first)
+      isShowingReward = true;
+      showTokenReward(reward.amount, reward.label, newBalance);
+      const checkDone = setInterval(() => {
+        const overlay = document.getElementById('tokenRewardModal');
+        if (overlay && overlay.style.opacity === '0') {
+          clearInterval(checkDone);
+          isShowingReward = false;
+          setTimeout(processQueue, 100);
+        }
+      }, 300);
+    }
+
+    toast(`+${reward.amount} tokens earned!`, 'success');
+  };
+
+  /* ───── HOOK: POST SUBMISSION ───── */
+  const _origSubmitPost = window.submitPost;
+  window.submitPost = async function() {
+    const result = _origSubmitPost ? _origSubmitPost.apply(this, arguments) : undefined;
+    // Fire immediately for visual, DB updates after
+    queueReward('post');
+    // If original is async, wait for it
+    if (result instanceof Promise) {
+      result.then(() => rewardTokens('post')).catch(() => {});
+    } else {
+      rewardTokens('post');
+    }
+    return result;
+  };
+
+  /* ───── HOOK: IDEA SUBMISSION ───── */
+  const _origSubmitIdea = window.submitIdea;
+  window.submitIdea = async function() {
+    const result = _origSubmitIdea ? _origSubmitIdea.apply(this, arguments) : undefined;
+    queueReward('idea');
+    if (result instanceof Promise) {
+      result.then(() => rewardTokens('idea')).catch(() => {});
+    } else {
+      rewardTokens('idea');
+    }
+    return result;
+  };
+
+  /* ───── HOOK: SIGN UP (one-time, not on every page load) ───── */
+  const _origSignUp = window.signUp;
+  window.signUp = async function(e) {
+    if (e) e.preventDefault();
+    const result = _origSignUp ? await _origSignUp.apply(this, arguments) : undefined;
+
+    // Only show signup reward if auth actually succeeded
+    const { data: session } = await supabaseClient.auth.getSession();
+    if (session?.session) {
+      // Small delay so the signup toast doesn't clash
+      setTimeout(() => rewardTokens('signup'), 800);
+    }
+    return result;
+  };
+
+  /* ───── EXPOSE FOR MANUAL USE ───── */
+  window.REWARDS = REWARDS;
+
+})();
    </script>
 </body>
 </html>
