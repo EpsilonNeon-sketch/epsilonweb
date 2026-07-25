@@ -173,6 +173,10 @@ select.inp option{background:#0b0710;color:var(--t1)}
 <div style="padding:.5rem 0;flex:1;overflow-y:auto">
 <button class="nav-btn active" onclick="go('dash')" data-p="dash"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</button>
 <button class="nav-btn" onclick="go('users')" data-p="users"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Users<span class="nav-badge" id="badgeUsers">0</span></button>
+<button class="nav-btn" onclick="go('epsiad')" data-p="epsiad">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+  Epsilon Sites<span class="nav-badge" id="badgeEpsiad">0</span>
+</button>
 <button class="nav-btn" onclick="go('posts')" data-p="posts"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Posts<span class="nav-badge" id="badgePosts">0</span></button>
 <button class="nav-btn" onclick="go('ideas')" data-p="ideas"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>Ideas<span class="nav-badge" id="badgeIdeas">0</span></button>
 </div>
@@ -259,7 +263,31 @@ Sign Out
 <div id="recentActivity" style="display:flex;flex-direction:column;gap:.5rem"></div>
 </div>
 </div>
+<!-- EPSIAD SITES -->
+<div class="page" id="p-epsiad">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.75rem">
+    <div>
+      <h1 style="font-size:1.4rem;font-weight:700">Epsilon Sites</h1>
+      <p style="font-size:.78rem;color:var(--t3);margin-top:.15rem">Manage epsilon sites, pages, and features</p>
+    </div>
+    <div style="display:flex;gap:.5rem;align-items:center">
+      <input type="text" class="inp" id="epsiadSearch" placeholder="Search sites..." style="width:220px" oninput="filterEpsiad()">
+      <button class="btn btn-accent" onclick="openEpsiadForm()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Site
+      </button>
+    </div>
+  </div>
 
+  <!-- Sites Grid -->
+  <div id="epsiadGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1rem"></div>
+
+  <div id="epsiadEmpty" class="empty-state" style="display:none">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+    <p style="font-size:.85rem">No epsilon sites found</p>
+  </div>
+  <div id="epsiadLoading" class="loading-overlay" style="display:none"><div class="spinner"></div><p style="font-size:.78rem;color:var(--t3)">Loading sites...</p></div>
+</div>
 <!-- USERS -->
 <div class="page" id="p-users">
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.75rem">
@@ -324,6 +352,84 @@ Sign Out
 </div>
 
 </div>
+</div>
+
+<!-- ============ EPSIAD CREATE/EDIT MODAL ============ -->
+<div class="modal-bg" id="epsiadFormModal">
+  <div class="modal" style="padding:0;max-width:560px">
+    <div style="padding:1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+      <h3 style="font-size:1rem;font-weight:600" id="epsiadFormTitle">New Epsilon Site</h3>
+      <button onclick="closeModal('epsiadFormModal')" class="btn btn-ghost btn-sm" style="padding:.3rem"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <form onsubmit="saveEpsiadSite(event)" style="padding:1.5rem;display:flex;flex-direction:column;gap:.8rem">
+      <input type="hidden" id="epFormId">
+      <div>
+        <label style="font-size:.7rem;font-weight:600;color:var(--t3);display:block;margin-bottom:.25rem">Site Name *</label>
+        <input type="text" class="inp" id="epFormName" placeholder="My Epsilon Site" required>
+      </div>
+      <div>
+        <label style="font-size:.7rem;font-weight:600;color:var(--t3);display:block;margin-bottom:.25rem">Description</label>
+        <textarea class="inp" id="epFormDesc" rows="3" placeholder="What is this site about..." style="resize:vertical"></textarea>
+      </div>
+      <div>
+        <label style="font-size:.7rem;font-weight:600;color:var(--t3);display:block;margin-bottom:.25rem">Image URL</label>
+        <input type="url" class="inp" id="epFormImage" placeholder="https://...">
+      </div>
+      <div>
+        <label style="font-size:.7rem;font-weight:600;color:var(--t3);display:block;margin-bottom:.25rem">Tags (comma-separated)</label>
+        <input type="text" class="inp" id="epFormTags" placeholder="saas, dashboard, ai">
+      </div>
+      <div style="display:flex;align-items:center;gap:.6rem">
+        <input type="checkbox" id="epFormAI" style="accent-color:var(--accent);width:16px;height:16px;cursor:pointer">
+        <label for="epFormAI" style="font-size:.8rem;color:var(--t2);cursor:pointer">Has AI features</label>
+      </div>
+      <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:.5rem">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('epsiadFormModal')">Cancel</button>
+        <button type="submit" class="btn btn-accent" id="epFormBtn">Save Site</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ EPSIAD DETAIL MODAL ============ -->
+<div class="modal-bg" id="epsiadDetailModal">
+  <div class="modal" style="padding:0;max-width:720px;max-height:88vh;display:flex;flex-direction:column">
+    <div style="padding:1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <h3 style="font-size:1rem;font-weight:600" id="epDetailTitle">Site Details</h3>
+      <div style="display:flex;gap:.35rem">
+        <button class="btn btn-ghost btn-sm" onclick="editEpsiadSite()" title="Edit site">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="deleteEpsiadSite()" title="Delete site">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+        </button>
+        <button onclick="closeModal('epsiadDetailModal')" class="btn btn-ghost btn-sm" style="padding:.3rem"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+    </div>
+    <div id="epsiadDetailContent" style="padding:1.5rem;overflow-y:auto;flex:1"></div>
+  </div>
+</div>
+
+<!-- ============ ADD PAGE/FEATURE MODAL ============ -->
+<div class="modal-bg" id="epAddModal">
+  <div class="modal" style="padding:0;max-width:420px">
+    <div style="padding:1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+      <h3 style="font-size:1rem;font-weight:600" id="epAddTitle">Add Item</h3>
+      <button onclick="closeModal('epAddModal')" class="btn btn-ghost btn-sm" style="padding:.3rem"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <form onsubmit="saveEpsiadItem(event)" style="padding:1.5rem;display:flex;flex-direction:column;gap:.8rem">
+      <input type="hidden" id="epAddSiteId">
+      <input type="hidden" id="epAddType">
+      <div>
+        <label style="font-size:.7rem;font-weight:600;color:var(--t3);display:block;margin-bottom:.25rem" id="epAddLabel">Name</label>
+        <input type="text" class="inp" id="epAddValue" placeholder="Enter value..." required>
+      </div>
+      <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:.5rem">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('epAddModal')">Cancel</button>
+        <button type="submit" class="btn btn-accent">Add</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <!-- ============ USER DETAIL MODAL ============ -->
@@ -1053,7 +1159,6 @@ function showIdeaDetail(ideaId) {
     document.getElementById('app').style.display = 'none';
 })();
 
-/* 响应式图表行 */
 function handleResize() {
     const row = document.getElementById('chartsRow');
     if (!row) return;
@@ -1067,6 +1172,300 @@ function handleResize() {
 }
 window.addEventListener('resize', handleResize);
 handleResize();
+</script>
+<script>
+  /* ================================================================
+   EPSIAD SITES
+   ================================================================ */
+let allEpsiad = [];
+let currentEpsiadId = null;
+
+/* --- Load & Render --- */
+async function loadEpsiad() {
+    const loading = document.getElementById('epsiadLoading');
+    const empty = document.getElementById('epsiadEmpty');
+    const grid = document.getElementById('epsiadGrid');
+    loading.style.display = 'flex';
+    empty.style.display = 'none';
+    grid.innerHTML = '';
+
+    const { data, error } = await sb.from('epsiad').select('*').order('created_at', { ascending: false });
+    loading.style.display = 'none';
+    if (error) { toast('Failed to load sites: ' + error.message, 'err'); return; }
+    allEpsiad = data || [];
+    document.getElementById('badgeEpsiad').textContent = allEpsiad.length;
+    renderEpsiad(allEpsiad);
+}
+
+function renderEpsiad(sites) {
+    const grid = document.getElementById('epsiadGrid');
+    const empty = document.getElementById('epsiadEmpty');
+    if (sites.length === 0) { empty.style.display = 'block'; grid.innerHTML = ''; return; }
+    empty.style.display = 'none';
+
+    grid.innerHTML = sites.map(s => {
+        const pages = Array.isArray(s.pages) ? s.pages : [];
+        const features = Array.isArray(s.features) ? s.features : [];
+        const tags = Array.isArray(s.tags) ? s.tags : [];
+        return `<div class="stat-card" style="cursor:pointer;padding:0;overflow:hidden" onclick="showEpsiadDetail('${s.id}')">
+            ${s.image ? `<div style="height:140px;background:url('${escapeHTML(s.image)}') center/cover;position:relative"><div style="position:absolute;inset:0;background:linear-gradient(transparent 40%,rgba(5,5,8,.85))"></div>
+                ${s.has_ai ? `<span class="badge badge-cyan" style="position:absolute;top:.65rem;right:.65rem">AI</span>` : ''}
+            </div>` : `<div style="height:60px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;position:relative">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                ${s.has_ai ? `<span class="badge badge-cyan" style="position:absolute;top:.5rem;right:.5rem">AI</span>` : ''}
+            </div>`}
+            <div style="padding:1.15rem 1.25rem 1.25rem">
+                <div style="font-size:1rem;font-weight:700;color:var(--t1);margin-bottom:.25rem">${escapeHTML(s.name)}</div>
+                ${s.description ? `<p style="font-size:.76rem;color:var(--t3);margin-bottom:.65rem;line-height:1.5">${escapeHTML(truncate(s.description, 90))}</p>` : '<div style="margin-bottom:.65rem"></div>'}
+                ${tags.length ? `<div style="display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.75rem">${tags.slice(0, 5).map(t => `<span class="badge badge-gray">${escapeHTML(t)}</span>`).join('')}${tags.length > 5 ? `<span class="badge badge-gray">+${tags.length - 5}</span>` : ''}</div>` : ''}
+                <div style="display:flex;gap:1.25rem;font-size:.72rem;color:var(--t3)">
+                    <span><strong style="color:var(--t2)">${pages.length}</strong> pages</span>
+                    <span><strong style="color:var(--t2)">${features.length}</strong> features</span>
+                    <span style="margin-left:auto">${fmtDate(s.updated_at || s.created_at)}</span>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function filterEpsiad() {
+    const q = document.getElementById('epsiadSearch').value.toLowerCase().trim();
+    if (!q) { renderEpsiad(allEpsiad); return; }
+    const filtered = allEpsiad.filter(s =>
+        (s.name || '').toLowerCase().includes(q) ||
+        (s.description || '').toLowerCase().includes(q) ||
+        (Array.isArray(s.tags) ? s.tags : []).some(t => t.toLowerCase().includes(q))
+    );
+    renderEpsiad(filtered);
+}
+
+/* --- Create / Edit Form --- */
+function openEpsiadForm(siteId) {
+    const title = document.getElementById('epsiadFormTitle');
+    const btn = document.getElementById('epFormBtn');
+    document.getElementById('epFormId').value = '';
+    document.getElementById('epFormName').value = '';
+    document.getElementById('epFormDesc').value = '';
+    document.getElementById('epFormImage').value = '';
+    document.getElementById('epFormTags').value = '';
+    document.getElementById('epFormAI').checked = false;
+
+    if (siteId) {
+        const s = allEpsiad.find(x => x.id === siteId);
+        if (!s) return;
+        title.textContent = 'Edit Epsilon Site';
+        btn.textContent = 'Update Site';
+        document.getElementById('epFormId').value = s.id;
+        document.getElementById('epFormName').value = s.name || '';
+        document.getElementById('epFormDesc').value = s.description || '';
+        document.getElementById('epFormImage').value = s.image || '';
+        document.getElementById('epFormTags').value = (Array.isArray(s.tags) ? s.tags : []).join(', ');
+        document.getElementById('epFormAI').checked = !!s.has_ai;
+    } else {
+        title.textContent = 'New Epsilon Site';
+        btn.textContent = 'Save Site';
+    }
+    openModal('epsiadFormModal');
+}
+
+async function saveEpsiadSite(e) {
+    e.preventDefault();
+    const id = document.getElementById('epFormId').value;
+    const payload = {
+        name: document.getElementById('epFormName').value.trim(),
+        description: document.getElementById('epFormDesc').value.trim() || null,
+        image: document.getElementById('epFormImage').value.trim() || null,
+        tags: document.getElementById('epFormTags').value.split(',').map(t => t.trim()).filter(Boolean),
+        has_ai: document.getElementById('epFormAI').checked
+    };
+
+    let error;
+    if (id) {
+        ({ error } = await sb.from('epsiad').update(payload).eq('id', id));
+    } else {
+        ({ error } = await sb.from('epsiad').insert(payload));
+    }
+
+    if (error) { toast('Failed to save: ' + error.message, 'err'); return; }
+    toast(id ? 'Site updated' : 'Site created', 'ok');
+    closeModal('epsiadFormModal');
+    loadEpsiad();
+    /* If detail modal is open, refresh it */
+    if (id && document.getElementById('epsiadDetailModal').classList.contains('open')) {
+        showEpsiadDetail(id);
+    }
+}
+
+/* --- Detail Modal --- */
+async function showEpsiadDetail(siteId) {
+    currentEpsiadId = siteId;
+    const el = document.getElementById('epsiadDetailContent');
+    el.innerHTML = '<div class="loading-overlay" style="padding:2rem"><div class="spinner"></div></div>';
+    openModal('epsiadDetailModal');
+
+    /* Fetch site + linked ideas in parallel */
+    const [siteRes, ideasRes] = await Promise.all([
+        sb.from('epsiad').select('*').eq('id', siteId).single(),
+        sb.from('ideas').select('*').eq('epsilon_site_id', siteId).order('created_at', { ascending: false })
+    ]);
+
+    if (siteRes.error) {
+        el.innerHTML = `<p style="color:#f87171;font-size:.82rem">Failed to load site</p>`;
+        return;
+    }
+
+    const s = siteRes.data;
+    const linkedIdeas = ideasRes.data || [];
+    const pages = Array.isArray(s.pages) ? s.pages : [];
+    const features = Array.isArray(s.features) ? s.features : [];
+    const tags = Array.isArray(s.tags) ? s.tags : [];
+    const userMap = buildUserMap();
+
+    document.getElementById('epDetailTitle').textContent = s.name;
+
+    el.innerHTML = `
+        ${s.image ? `<img src="${escapeHTML(s.image)}" alt="" style="width:100%;height:180px;object-fit:cover;border-radius:.6rem;margin-bottom:1rem" onerror="this.style.display='none'">` : ''}
+        <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin-bottom:.75rem">
+            ${s.has_ai ? '<span class="badge badge-cyan">AI Powered</span>' : '<span class="badge badge-gray">No AI</span>'}
+            ${tags.map(t => `<span class="badge badge-purple">${escapeHTML(t)}</span>`).join('')}
+        </div>
+        ${s.description ? `<p style="font-size:.84rem;color:var(--t2);line-height:1.6;margin-bottom:1.25rem">${escapeHTML(s.description)}</p>` : ''}
+        <div style="font-size:.68rem;color:var(--t4);margin-bottom:1.25rem">Created ${fmtDateFull(s.created_at)} &middot; Updated ${fmtDateFull(s.updated_at)}</div>
+
+        <!-- Pages -->
+        <div style="margin-bottom:1.25rem">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
+                <h4 style="font-size:.85rem;font-weight:600;color:var(--t1)">Pages <span style="color:var(--t3);font-weight:400">(${pages.length})</span></h4>
+                <button class="btn btn-ghost btn-sm" onclick="openAddItem('${s.id}','pages')">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add
+                </button>
+            </div>
+            ${pages.length ? `<div style="display:flex;flex-direction:column;gap:.3rem">${pages.map((p, i) => `
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:.45rem .7rem;background:var(--accent-dim);border-radius:.4rem;border:1px solid var(--border)">
+                    <span style="font-size:.8rem;color:var(--t2)">${escapeHTML(p)}</span>
+                    <button class="btn btn-danger btn-sm" style="padding:.2rem .4rem;min-width:auto" onclick="removeEpsiadItem('${s.id}','pages',${i})" title="Remove">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+            `).join('')}</div>` : '<p style="font-size:.78rem;color:var(--t4);padding:.4rem 0">No pages added yet</p>'}
+        </div>
+
+        <!-- Features -->
+        <div style="margin-bottom:1.25rem">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
+                <h4 style="font-size:.85rem;font-weight:600;color:var(--t1)">Features <span style="color:var(--t3);font-weight:400">(${features.length})</span></h4>
+                <button class="btn btn-ghost btn-sm" onclick="openAddItem('${s.id}','features')">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add
+                </button>
+            </div>
+            ${features.length ? `<div style="display:flex;flex-direction:column;gap:.3rem">${features.map((f, i) => `
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:.45rem .7rem;background:var(--accent-dim);border-radius:.4rem;border:1px solid var(--border)">
+                    <span style="font-size:.8rem;color:var(--t2)">${escapeHTML(f)}</span>
+                    <button class="btn btn-danger btn-sm" style="padding:.2rem .4rem;min-width:auto" onclick="removeEpsiadItem('${s.id}','features',${i})" title="Remove">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+            `).join('')}</div>` : '<p style="font-size:.78rem;color:var(--t4);padding:.4rem 0">No features added yet</p>'}
+        </div>
+
+        <!-- Linked Ideas -->
+        <div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
+                <h4 style="font-size:.85rem;font-weight:600;color:var(--t1)">Linked Ideas <span style="color:var(--t3);font-weight:400">(${linkedIdeas.length})</span></h4>
+            </div>
+            ${linkedIdeas.length ? `<div style="display:flex;flex-direction:column;gap:.3rem">${linkedIdeas.map(idea => {
+                const u = userMap[idea.user_id];
+                const name = u?.display_name || u?.username || 'Unknown';
+                return `<div style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;background:var(--accent-dim);border-radius:.4rem;border:1px solid var(--border);cursor:pointer" onclick="closeModal('epsiadDetailModal');setTimeout(()=>showIdeaDetail('${idea.id}'),300)">
+                    ${avatarHTML(u)}
+                    <div style="flex:1;min-width:0">
+                        <div style="font-size:.8rem;color:var(--t1);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHTML(truncate(idea.title, 60))}</div>
+                        <div style="font-size:.68rem;color:var(--t3)">${escapeHTML(name)} &middot; ${fmtDate(idea.created_at)}</div>
+                    </div>
+                    ${statusBadge(idea.status)}
+                </div>`;
+            }).join('')}</div>` : '<p style="font-size:.78rem;color:var(--t4);padding:.4rem 0">No ideas linked to this site</p>'}
+        </div>
+    `;
+}
+
+/* --- Add Page/Feature --- */
+function openAddItem(siteId, type) {
+    document.getElementById('epAddSiteId').value = siteId;
+    document.getElementById('epAddType').value = type;
+    document.getElementById('epAddValue').value = '';
+    document.getElementById('epAddLabel').textContent = type === 'pages' ? 'Page Name' : 'Feature Name';
+    document.getElementById('epAddTitle').textContent = type === 'pages' ? 'Add Page' : 'Add Feature';
+    document.getElementById('epAddValue').placeholder = type === 'pages' ? 'e.g. Dashboard, Settings' : 'e.g. Dark mode, Export CSV';
+    openModal('epAddModal');
+}
+
+async function saveEpsiadItem(e) {
+    e.preventDefault();
+    const siteId = document.getElementById('epAddSiteId').value;
+    const type = document.getElementById('epAddType').value;
+    const value = document.getElementById('epAddValue').value.trim();
+    if (!value) return;
+
+    const site = allEpsiad.find(s => s.id === siteId);
+    if (!site) return;
+
+    const arr = [...(Array.isArray(site[type]) ? site[type] : []), value];
+    const { error } = await sb.from('epsiad').update({ [type]: arr }).eq('id', siteId);
+    if (error) { toast('Failed to add: ' + error.message, 'err'); return; }
+
+    toast(`${type === 'pages' ? 'Page' : 'Feature'} added`, 'ok');
+    closeModal('epAddModal');
+    /* Refresh detail and grid without full reload */
+    const idx = allEpsiad.findIndex(s => s.id === siteId);
+    if (idx !== -1) allEpsiad[idx][type] = arr;
+    renderEpsiad(allEpsiad);
+    showEpsiadDetail(siteId);
+}
+
+/* --- Remove Page/Feature --- */
+async function removeEpsiadItem(siteId, type, index) {
+    const site = allEpsiad.find(s => s.id === siteId);
+    if (!site) return;
+    const arr = [...(Array.isArray(site[type]) ? site[type] : [])];
+    arr.splice(index, 1);
+
+    const { error } = await sb.from('epsiad').update({ [type]: arr }).eq('id', siteId);
+    if (error) { toast('Failed to remove: ' + error.message, 'err'); return; }
+
+    toast(`${type === 'pages' ? 'Page' : 'Feature'} removed`, 'ok');
+    const idx = allEpsiad.findIndex(s => s.id === siteId);
+    if (idx !== -1) allEpsiad[idx][type] = arr;
+    renderEpsiad(allEpsiad);
+    showEpsiadDetail(siteId);
+}
+
+/* --- Edit Site (from detail modal) --- */
+function editEpsiadSite() {
+    if (!currentEpsiadId) return;
+    closeModal('epsiadDetailModal');
+    setTimeout(() => openEpsiadForm(currentEpsiadId), 300);
+}
+
+/* --- Delete Site --- */
+function deleteEpsiadSite() {
+    if (!currentEpsiadId) return;
+    const site = allEpsiad.find(s => s.id === currentEpsiadId);
+    document.getElementById('confirmTitle').textContent = 'Delete Site';
+    document.getElementById('confirmMsg').textContent = `Are you sure you want to delete "${site?.name}"? This will also unlink its ideas. This cannot be undone.`;
+    document.getElementById('confirmBtn').onclick = async function () {
+        closeModal('confirmModal');
+        closeModal('epsiadDetailModal');
+        const { error } = await sb.from('epsiad').delete().eq('id', currentEpsiadId);
+        if (error) { toast('Failed to delete: ' + error.message, 'err'); return; }
+        toast('Site deleted', 'ok');
+        allEpsiad = allEpsiad.filter(s => s.id !== currentEpsiadId);
+        currentEpsiadId = null;
+        document.getElementById('badgeEpsiad').textContent = allEpsiad.length;
+        renderEpsiad(allEpsiad);
+    };
+    openModal('confirmModal');
+}
 </script>
 </body>
 </html>
