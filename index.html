@@ -1,0 +1,2488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Epsilon Hub</title>
+<script src="https://cdn.tailwindcss.com"></script>
+  <link rel="manifest" href="manifest.json">
+<script src="https://cdn.jsdelivr.net/npm/marked/lib/marked.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="icon" href="https://epsilonhub.vercel.app/epsilon logo.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+/* ============ CONTRIBUTIONS PAGE ============ */
+.rating-bar-track{width:60px;height:6px;border-radius:3px;background:rgba(255,255,255,.05);overflow:hidden;flex-shrink:0}
+.rating-bar-fill{height:100%;border-radius:3px;transition:width .3s}
+.idea-status{display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .55rem;border-radius:9999px;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.status-open{background:rgba(96,165,250,.1);color:#60a5fa;border:1px solid rgba(96,165,250,.18)}
+.status-under_review{background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.18)}
+.status-planned{background:rgba(167,139,250,.1);color:#a78bfa;border:1px solid rgba(167,139,250,.18)}
+.status-implemented{background:rgba(74,222,128,.1);color:#4ade80;border:1px solid rgba(74,222,128,.18)}
+.status-declined{background:rgba(248,113,113,.1);color:#f87171;border:1px solid rgba(248,113,113,.18)}
+.filter-select{padding:.45rem 2rem .45rem .75rem;border-radius:.55rem;background:rgba(15,15,25,.8);border:1.5px solid rgba(139,92,246,.15);color:#a1a1aa;font-size:.78rem;font-family:'Inter',sans-serif;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .6rem center;cursor:pointer;transition:all .2s;min-width:120px}
+.filter-select:focus{outline:none;border-color:#8b5cf6;box-shadow:0 0 0 2px rgba(139,92,246,.12)}
+.filter-select option{background:#18182a;color:#e4e4e7}
+.idea-card{background:rgba(20,20,30,.6);border:1px solid rgba(139,92,246,.08);border-radius:1rem;padding:1.35rem;transition:all .3s;cursor:pointer}
+.idea-card:hover{border-color:rgba(139,92,246,.2);box-shadow:0 8px 32px rgba(139,92,246,.06);transform:translateY(-2px)}
+.reply-bubble{background:rgba(15,15,25,.6);border:1px solid rgba(139,92,246,.06);border-radius:.75rem;padding:.85rem 1rem}
+.trending-badge{display:inline-flex;align-items:center;gap:.2rem;padding:.12rem .45rem;border-radius:9999px;font-size:.6rem;font-weight:700;background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.2);text-transform:uppercase;letter-spacing:.04em}
+.stat-chip{display:flex;align-items:center;gap:.35rem;padding:.4rem .75rem;border-radius:.6rem;background:rgba(139,92,246,.05);border:1px solid rgba(139,92,246,.08);font-size:.76rem;color:#71717a}
+.stat-chip strong{color:#a78bfa;font-weight:700}
+input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:3px;background:rgba(255,255,255,.06);outline:none;transition:all .2s}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#8b5cf6);cursor:pointer;border:2px solid rgba(255,255,255,.15);box-shadow:0 2px 8px rgba(139,92,246,.3);transition:all .15s}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.15);box-shadow:0 2px 12px rgba(139,92,246,.5)}
+.remove-box{background:rgba(239,68,68,.04);border:1px solid rgba(239,68,68,.1);border-radius:.65rem;padding:.75rem 1rem}
+@media(max-width:768px){.filter-row{flex-direction:column}.filter-select{min-width:100%}}
+body{font-family:'Inter',sans-serif;background:#09090b;color:#e4e4e7;overflow-x:hidden;min-height:100vh}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(139,92,246,.25);border-radius:10px}
+.bg-grid{position:fixed;inset:0;z-index:-2;background-image:radial-gradient(rgba(139,92,246,.06) 1px,transparent 1px);background-size:32px 32px;pointer-events:none}
+.bg-glow{position:fixed;inset:0;z-index:-1;background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(124,58,237,.12) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 80% 100%,rgba(139,92,246,.06) 0%,transparent 50%);pointer-events:none}
+.glass{background:rgba(20,20,30,.85);backdrop-filter:blur(20px);border:1px solid rgba(139,92,246,.12)}
+.input-field{width:100%;border-radius:.65rem;padding:.75rem 1rem;background:rgba(15,15,25,.8);border:1.5px solid rgba(139,92,246,.18);transition:all .25s;font-size:.88rem;font-family:'Inter',sans-serif;color:#e4e4e7}
+.input-field:focus{outline:none;border-color:#8b5cf6;box-shadow:0 0 0 3px rgba(139,92,246,.15)}
+.input-field::placeholder{color:#52525b}
+select.input-field{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238b5cf6' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 1rem center}
+select.input-field option{background:#18182a;color:#e4e4e7}
+textarea.input-field{resize:vertical;min-height:80px}
+.btn-primary{padding:.7rem 1.4rem;border-radius:.65rem;background:linear-gradient(135deg,#7c3aed,#8b5cf6,#a78bfa);color:#fff;font-size:.86rem;font-weight:600;border:none;cursor:pointer;transition:all .25s;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:.4rem}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(139,92,246,.35)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-outline{padding:.7rem 1.4rem;border-radius:.65rem;background:transparent;color:#a78bfa;font-size:.86rem;font-weight:600;border:1.5px solid rgba(139,92,246,.28);cursor:pointer;transition:all .25s;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:.4rem}
+.btn-outline:hover{border-color:#8b5cf6;background:rgba(139,92,246,.08)}
+.btn-sm{padding:.45rem .9rem;font-size:.78rem}
+.btn-ghost{padding:.5rem 1rem;border-radius:.5rem;background:transparent;color:#a1a1aa;font-size:.82rem;font-weight:500;border:none;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif}
+.btn-ghost:hover{color:#e4e4e7;background:rgba(139,92,246,.08)}
+.btn-danger{padding:.5rem 1rem;border-radius:.5rem;background:rgba(239,68,68,.1);color:#f87171;font-size:.8rem;font-weight:600;border:1px solid rgba(239,68,68,.2);cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif}
+.btn-danger:hover{background:rgba(239,68,68,.2)}
+.sidebar{position:fixed;left:0;top:0;height:100vh;width:250px;background:rgba(12,12,20,.97);backdrop-filter:blur(24px);border-right:1px solid rgba(139,92,246,.08);transition:transform .35s cubic-bezier(.4,0,.2,1);z-index:100;overflow-y:auto;display:flex;flex-direction:column}
+.sidebar.closed{transform:translateX(-100%)}
+.main-wrap{margin-left:250px;transition:margin-left .35s cubic-bezier(.4,0,.2,1);min-height:100vh}
+.main-wrap.expanded{margin-left:0}
+.menu-toggle{position:fixed;top:1rem;left:1rem;z-index:101;background:linear-gradient(135deg,#7c3aed,#8b5cf6);border:none;padding:.6rem;border-radius:.6rem;cursor:pointer;color:#fff;box-shadow:0 4px 16px rgba(139,92,246,.3);display:none;align-items:center;justify-content:center}
+.nav-btn{display:flex;align-items:center;gap:.7rem;padding:.65rem 1.15rem;margin:.12rem .65rem;border-radius:.6rem;font-size:.84rem;font-weight:500;color:#71717a;cursor:pointer;transition:all .2s;border:none;background:transparent;width:calc(100% - 1.3rem);font-family:'Inter',sans-serif;text-align:left}
+.nav-btn:hover{background:rgba(139,92,246,.08);color:#c4b5fd}
+.nav-btn.active-nav{background:linear-gradient(135deg,rgba(139,92,246,.18),rgba(124,58,237,.12))!important;color:#c4b5fd!important;border:1px solid rgba(139,92,246,.18)}
+.page{display:none;padding:2rem 2.5rem;animation:fadeUp .35s ease}
+.page.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.card{background:rgba(20,20,30,.75);border:1px solid rgba(139,92,246,.1);border-radius:1rem;overflow:hidden;transition:all .3s}
+.card:hover{border-color:rgba(139,92,246,.22);box-shadow:0 12px 40px rgba(139,92,246,.08);transform:translateY(-3px)}
+.avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#8b5cf6);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:.85rem;flex-shrink:0;overflow:hidden}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.avatar-sm{width:32px;height:32px;font-size:.7rem}
+.avatar-lg{width:64px;height:64px;font-size:1.4rem}
+.avatar-xl{width:96px;height:96px;font-size:2rem}
+.tag{display:inline-flex;align-items:center;padding:.18rem .55rem;border-radius:9999px;font-size:.68rem;font-weight:600;background:rgba(139,92,246,.1);color:#a78bfa;border:1px solid rgba(139,92,246,.12)}
+.divider{height:1px;background:rgba(139,92,246,.08);margin:.75rem 0}
+.toast-container{position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:.5rem}
+.toast{padding:.85rem 1.25rem;border-radius:.7rem;color:#fff;font-weight:500;font-size:.85rem;box-shadow:0 8px 32px rgba(0,0,0,.3);transform:translateX(120%);transition:transform .4s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;gap:.5rem;max-width:360px}
+.toast.show{transform:translateX(0)}
+.toast-success{background:linear-gradient(135deg,#059669,#10b981)}
+.toast-error{background:linear-gradient(135deg,#dc2626,#ef4444)}
+.toast-info{background:linear-gradient(135deg,#7c3aed,#8b5cf6)}
+.like-btn{display:inline-flex;align-items:center;gap:.3rem;padding:.3rem .65rem;border-radius:9999px;font-size:.78rem;font-weight:600;background:transparent;color:#71717a;border:1px solid rgba(139,92,246,.1);cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif}
+.like-btn:hover{color:#f472b6;border-color:rgba(244,114,182,.3);background:rgba(244,114,182,.05)}
+.like-btn.liked{color:#f472b6;border-color:rgba(244,114,182,.3);background:rgba(244,114,182,.1)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);z-index:300;display:none;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.active{display:flex}
+.modal-box{background:rgba(18,18,28,.98);border:1px solid rgba(139,92,246,.15);border-radius:1.15rem;max-width:500px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.5);animation:modalIn .3s cubic-bezier(.22,1,.36,1)}
+@keyframes modalIn{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.pulse-dot{width:8px;height:8px;border-radius:50%;background:#4ade80;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.site-card{background:rgba(20,20,30,.7);border:1px solid rgba(139,92,246,.1);border-radius:1rem;overflow:hidden;transition:all .3s;cursor:pointer}
+.site-card:hover{border-color:rgba(139,92,246,.25);transform:translateY(-4px);box-shadow:0 16px 48px rgba(139,92,246,.1)}
+.post-card{background:rgba(20,20,30,.65);border:1px solid rgba(139,92,246,.08);border-radius:1rem;padding:1.25rem;transition:all .25s}
+.post-card:hover{border-color:rgba(139,92,246,.15)}
+.user-card{background:rgba(20,20,30,.65);border:1px solid rgba(139,92,246,.08);border-radius:1rem;padding:1.15rem;transition:all .25s;cursor:pointer}
+.user-card:hover{border-color:rgba(139,92,246,.2);transform:translateY(-2px)}
+.call-btn{display:inline-flex;align-items:center;gap:.35rem;padding:.4rem .85rem;border-radius:.5rem;font-size:.78rem;font-weight:600;border:1px solid rgba(34,197,94,.25);background:rgba(34,197,94,.08);color:#4ade80;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif}
+.call-btn:hover{background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.4)}
+.call-btn:disabled{opacity:.4;cursor:not-allowed}
+.call-btn.calling{animation:callPulse 1.5s ease-in-out infinite}
+@keyframes callPulse{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.3)}50%{box-shadow:0 0 0 8px rgba(34,197,94,0)}}
+#callModal video{width:100%;border-radius:.75rem;background:#000}
+.follow-btn{padding:.4rem 1rem;border-radius:9999px;font-size:.78rem;font-weight:600;border:1.5px solid rgba(139,92,246,.3);background:transparent;color:#a78bfa;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif}
+.follow-btn:hover{border-color:#8b5cf6;background:rgba(139,92,246,.1)}
+.follow-btn.following{background:rgba(139,92,246,.15);border-color:#8b5cf6;color:#c4b5fd}
+.auth-card{background:rgba(20,20,30,.95);border:1px solid rgba(139,92,246,.15);border-radius:1.15rem;box-shadow:0 24px 80px rgba(139,92,246,.1);max-width:460px;width:100%;backdrop-filter:blur(24px);overflow:hidden}
+.field-hint{font-size:.68rem;color:#3f3f46;margin-top:.2rem}
+@media(max-width:768px){
+.sidebar{transform:translateX(-100%)}
+.sidebar.open{transform:translateX(0)}
+.main-wrap{margin-left:0}
+.main-wrap.expanded{margin-left:0}
+.page{padding:1.25rem;padding-top:4rem}
+.menu-toggle{display:flex!important}
+.auth-card{margin:.5rem}
+}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- AUTH PAGE -->
+<div id="authPage" style="position:fixed;inset:0;z-index:200;display:none;align-items:flex-start;justify-content:center;background:#09090b;overflow-y:auto;padding:2rem 1rem">
+<div class="auth-card">
+<div style="padding:2rem 1.75rem 0;text-align:center">
+<div style="width:60px;height:60px;border-radius:1rem;background:linear-gradient(135deg,#7c3aed,#8b5cf6);margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:900;color:#fff">ε</div>
+<h1 style="font-size:1.8rem;font-weight:800;background:linear-gradient(135deg,#a78bfa,#c4b5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Epsilon Hub</h1>
+<p style="font-size:.84rem;color:#52525b;margin-top:.3rem">Connect. Create. Call.</p>
+</div>
+<div style="display:flex;border-bottom:1px solid rgba(139,92,246,.1);margin-top:1.25rem">
+<div id="tabIn" onclick="switchAuth('in')" style="flex:1;padding:.9rem;text-align:center;font-weight:600;font-size:.88rem;cursor:pointer;color:#a78bfa;border-bottom:2px solid #8b5cf6;transition:all .25s">Sign In</div>
+<div id="tabUp" onclick="switchAuth('up')" style="flex:1;padding:.9rem;text-align:center;font-weight:600;font-size:.88rem;cursor:pointer;color:#52525b;border-bottom:2px solid transparent;transition:all .25s">Sign Up</div>
+</div>
+
+<!-- SIGN IN FORM -->
+<form id="formIn" onsubmit="signIn(event)" style="padding:1.75rem;display:flex;flex-direction:column;gap:.8rem">
+<div>
+<label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Email</label>
+<input type="email" class="input-field" id="siEmail" placeholder="you@example.com" required>
+</div>
+<div>
+<label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Password</label>
+<input type="password" class="input-field" id="siPass" placeholder="••••••••" required>
+</div>
+<button type="submit" class="btn-primary" style="width:100%;justify-content:center;margin-top:.4rem" id="siBtn">Sign In</button>
+<p id="siErr" style="color:#f87171;font-size:.8rem;text-align:center;display:none"></p>
+</form>
+
+<!-- SIGN UP FORM -->
+<form id="formUp" onsubmit="signUp(event)" style="padding:1.75rem;display:none;flex-direction:column;gap:.65rem">
+<div>
+<label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Username <span style="color:#f87171">*</span></label>
+<input type="text" class="input-field" id="suUser" placeholder="cool_username" required minlength="3" pattern="[a-zA-Z0-9_]+">
+<p class="field-hint">Letters, numbers, underscores only. 3+ characters.</p>
+</div>
+<div>
+<label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Display Name <span style="color:#f87171">*</span></label>
+<input type="text" class="input-field" id="suName" placeholder="John Doe" required>
+</div>
+<div>
+<label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Email <span style="color:#f87171">*</span></label>
+<input type="email" class="input-field" id="suEmail" placeholder="you@example.com" required>
+</div>
+<div>
+<label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Password <span style="color:#f87171">*</span></label>
+<input type="password" class="input-field" id="suPass" placeholder="Min 6 characters" required minlength="6">
+</div>
+<div>
+<label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Bio</label>
+<textarea class="input-field" id="suBio" placeholder="Tell us about yourself..." style="min-height:70px"></textarea>
+</div>
+<div>
+<label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Location</label>
+<input type="text" class="input-field" id="suLocation" placeholder="Nairobi, Kenya">
+</div>
+<div style="background:rgba(139,92,246,.04);border:1px solid rgba(139,92,246,.08);border-radius:.6rem;padding:.7rem .85rem;display:flex;align-items:flex-start;gap:.5rem;margin-top:.15rem">
+<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#71717a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+<p style="font-size:.72rem;color:#52525b;line-height:1.5">A profile picture will be auto-generated and you'll be assigned a call ID automatically.</p>
+</div>
+<button type="submit" class="btn-primary" style="width:100%;justify-content:center;margin-top:.5rem" id="suBtn">Create Account</button>
+<p id="suErr" style="color:#f87171;font-size:.8rem;text-align:center;display:none"></p>
+</form>
+
+<div style="padding:0 1.75rem 1.5rem;text-align:center">
+<p style="font-size:.7rem;color:#3f3f46">By continuing, you agree to our Terms of Service</p>
+</div>
+</div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="app" style="display:none">
+<button class="menu-toggle" onclick="toggleSidebar()" id="menuToggle"><i data-lucide="menu" style="width:20px;height:20px"></i></button>
+
+<nav class="sidebar" id="sidebar">
+<div style="padding:1.35rem 1.15rem;border-bottom:1px solid rgba(139,92,246,.08)">
+<div style="display:flex;align-items:center;gap:.7rem;cursor:pointer" onclick="goTo('home')">
+<div style="width:38px;height:38px;border-radius:.7rem;background:linear-gradient(135deg,#7c3aed,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:1.05rem;font-weight:900;color:#fff">ε</div>
+<div><div style="font-size:1.05rem;font-weight:800;color:#e4e4e7">Epsilon Hub</div><div style="font-size:.62rem;color:#52525b;font-weight:500;letter-spacing:.06em;text-transform:uppercase">Community Platform</div></div>
+</div>
+</div>
+<div style="padding:.6rem 0;flex:1">
+<button class="nav-btn active-nav" onclick="goTo('home')" data-nav="home"><i data-lucide="layout-grid" style="width:17px;height:17px"></i>Home</button>
+<button class="nav-btn" onclick="goTo('posts')" data-nav="posts"><i data-lucide="message-square" style="width:17px;height:17px"></i>Posts</button>
+<button class="nav-btn" onclick="goTo('contributions')" data-nav="contributions"><i data-lucide="lightbulb" style="width:17px;height:17px"></i>Contributions</button>
+<button class="nav-btn" onclick="goTo('users')" data-nav="users"><i data-lucide="users" style="width:17px;height:17px"></i>Users</button>
+<button class="nav-btn" onclick="goTo('settings')" data-nav="settings"><i data-lucide="settings" style="width:17px;height:17px"></i>Settings</button>
+<div class="divider" style="margin:.5rem 1rem"></div>
+<button class="nav-btn" onclick="goTo('profile',currentUser?.id)" data-nav="profile"><i data-lucide="user" style="width:17px;height:17px"></i>My Profile</button>
+</div>
+<div style="padding:.85rem 1.1rem;border-top:1px solid rgba(139,92,246,.08)">
+<div style="display:flex;align-items:center;gap:.65rem;margin-bottom:.6rem">
+<div class="avatar avatar-sm" id="sideAvatar">E</div>
+<div style="min-width:0;flex:1"><div style="font-size:.8rem;font-weight:600;color:#e4e4e7;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="sideName">User</div><div style="font-size:.65rem;color:#52525b" id="sideUser">@user</div></div>
+</div>
+<button onclick="signOut()" class="btn-ghost" style="width:100%;justify-content:center;display:flex;align-items:center;gap:.35rem;border:1px solid rgba(139,92,246,.1);border-radius:.5rem;padding:.5rem"><i data-lucide="log-out" style="width:14px;height:14px"></i>Sign Out</button>
+</div>
+</nav>
+
+<div class="main-wrap" id="mainWrap">
+
+<!-- HOME PAGE -->
+<div class="page active" id="page-home">
+<div style="background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(139,92,246,.06));border:1px solid rgba(139,92,246,.12);border-radius:1.15rem;padding:2.25rem;position:relative;overflow:hidden;margin-bottom:2rem">
+<div style="position:absolute;top:-40px;right:-40px;width:180px;height:180px;border-radius:50%;background:rgba(139,92,246,.06)"></div>
+<h1 style="font-size:1.6rem;font-weight:800;color:#e4e4e7;margin-bottom:.4rem;position:relative">Welcome to <span style="background:linear-gradient(135deg,#a78bfa,#c4b5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Epsilon Hub</span></h1>
+<p style="font-size:.88rem;color:#71717a;max-width:520px;position:relative;line-height:1.6">Explore our ecosystem of sites, connect with the community, and make voice calls — all in one place.</p>
+</div>
+<h2 style="font-size:1.2rem;font-weight:700;color:#e4e4e7;margin-bottom:1.25rem">Epsilon Sites</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.15rem" id="sitesGrid"></div>
+</div>
+
+<!-- POSTS PAGE -->
+<div class="page" id="page-posts">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.75rem">
+<div><h2 style="font-size:1.3rem;font-weight:800;color:#e4e4e7">Community Posts</h2><p style="font-size:.82rem;color:#52525b;margin-top:.15rem">Share thoughts, ideas, and updates</p></div>
+<button class="btn-primary" onclick="openPostModal()"><i data-lucide="plus" style="width:16px;height:16px"></i>New Post</button>
+</div>
+<div style="display:flex;gap:.5rem;margin-bottom:1.25rem;flex-wrap:wrap" id="categoryFilters"></div>
+<div style="display:flex;flex-direction:column;gap:1rem" id="postsFeed"></div>
+</div>
+
+<!-- USERS PAGE -->
+<div class="page" id="page-users">
+<div style="margin-bottom:1.5rem"><h2 style="font-size:1.3rem;font-weight:800;color:#e4e4e7">Explore Users</h2><p style="font-size:.82rem;color:#52525b;margin-top:.15rem">Find and connect with people</p></div>
+<div style="margin-bottom:1.25rem;max-width:400px;position:relative"><i data-lucide="search" style="width:16px;height:16px;position:absolute;left:.85rem;top:50%;transform:translateY(-50%);color:#52525b;pointer-events:none"></i><input type="text" class="input-field" id="userSearch" placeholder="Search by username or name..." style="padding-left:2.5rem" oninput="searchUsers(this.value)"></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem" id="usersGrid"></div>
+</div>
+
+<!-- CONTRIBUTIONS PAGE -->
+<div class="page" id="page-contributions">
+  <!-- Header -->
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.75rem">
+    <div>
+      <h2 style="font-size:1.3rem;font-weight:800;color:#e4e4e7">Contributions</h2>
+      <p style="font-size:.82rem;color:#52525b;margin-top:.15rem">Share ideas to improve Epsilon sites</p>
+    </div>
+    <button class="btn-primary" onclick="openIdeaModal()"><i data-lucide="plus" style="width:16px;height:16px"></i>Submit Idea</button>
+  </div>
+
+  <!-- Stats Row -->
+  <div style="display:flex;gap:.6rem;margin-bottom:1.35rem;flex-wrap:wrap" id="ideaStatsRow">
+    <div class="stat-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Total <strong id="statTotal">0</strong></div>
+    <div class="stat-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Implemented <strong id="statImplemented">0</strong></div>
+    <div class="stat-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></svg>Total Likes <strong id="statLikes">0</strong></div>
+  </div>
+
+  <!-- Search + Filters -->
+  <div style="display:flex;gap:.6rem;margin-bottom:1.25rem;flex-wrap:wrap;align-items:center" class="filter-row">
+    <div style="position:relative;flex:1;min-width:200px">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#52525b" stroke-width="2" style="position:absolute;left:.75rem;top:50%;transform:translateY(-50%);pointer-events:none"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" class="input-field" id="ideaSearch" placeholder="Search ideas..." style="padding-left:2.3rem;font-size:.82rem" oninput="debounceIdeaSearch(this.value)">
+    </div>
+    <select class="filter-select" id="filterSite" onchange="loadIdeas()">
+      <option value="All">All Sites</option>
+    </select>
+    <select class="filter-select" id="filterCategory" onchange="loadIdeas()">
+      <option value="All">All Categories</option>
+      <option value="Feature Request">Feature Request</option>
+      <option value="Improvement">Improvement</option>
+      <option value="Bug Fix">Bug Fix</option>
+      <option value="Removal">Removal</option>
+      <option value="Redesign">Redesign</option>
+      <option value="New Idea">New Idea</option>
+    </select>
+    <select class="filter-select" id="filterStatus" onchange="loadIdeas()">
+      <option value="All">All Status</option>
+      <option value="open">Open</option>
+      <option value="under_review">Under Review</option>
+      <option value="planned">Planned</option>
+      <option value="implemented">Implemented</option>
+      <option value="declined">Declined</option>
+    </select>
+    <select class="filter-select" id="filterSort" onchange="loadIdeas()">
+      <option value="newest">Newest</option>
+      <option value="most_liked">Most Liked</option>
+      <option value="most_discussed">Most Discussed</option>
+      <option value="highest_rated">Highest Rated</option>
+    </select>
+  </div>
+
+  <!-- Ideas Feed -->
+  <div style="display:flex;flex-direction:column;gap:1rem" id="ideasFeed"></div>
+</div>
+
+<!-- SETTINGS PAGE -->
+<div class="page" id="page-settings">
+<div style="margin-bottom:1.5rem"><h2 style="font-size:1.3rem;font-weight:800;color:#e4e4e7">Settings</h2><p style="font-size:.82rem;color:#52525b;margin-top:.15rem">Manage your profile and preferences</p></div>
+<div style="display:grid;gap:1.25rem;max-width:600px">
+<div class="glass" style="border-radius:1rem;padding:1.5rem">
+<h3 style="font-size:1rem;font-weight:700;color:#e4e4e7;margin-bottom:1rem">Profile Information</h3>
+<div style="display:flex;flex-direction:column;gap:.75rem">
+<div><label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Display Name</label><input type="text" class="input-field" id="setDisplayName" placeholder="Your name"></div>
+<div><label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Username</label><input type="text" class="input-field" id="setUsername" placeholder="@username" pattern="[a-zA-Z0-9_]+"><p style="font-size:.68rem;color:#52525b;margin-top:.2rem">Changing your username will update your profile URL</p></div>
+<div><label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Bio</label><textarea class="input-field" id="setBio" placeholder="Tell us about yourself..." style="min-height:80px"></textarea></div>
+<div><label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Location</label><input type="text" class="input-field" id="setLocation" placeholder="City, Country"></div>
+<div><label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Website</label><input type="url" class="input-field" id="setWebsite" placeholder="https://yoursite.com"></div>
+<div><label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Profile Picture URL</label><input type="url" class="input-field" id="setPic" placeholder="https://image-url.com/pic.jpg"></div>
+</div>
+<button class="btn-primary" style="margin-top:1rem" onclick="saveSettings()">Save Changes</button>
+</div>
+<div class="glass" style="border-radius:1rem;padding:1.5rem">
+<h3 style="font-size:1rem;font-weight:700;color:#e4e4e7;margin-bottom:1rem">Theme</h3>
+<div style="display:flex;gap:.6rem;flex-wrap:wrap" id="themePicker"></div>
+</div>
+<div class="glass" style="border-radius:1rem;padding:1.5rem">
+<h3 style="font-size:1rem;font-weight:700;color:#e4e4e7;margin-bottom:1rem">Account</h3>
+<button class="btn-danger" onclick="signOut()">Sign Out</button>
+</div>
+</div>
+</div>
+
+<!-- PROFILE PAGE -->
+<div class="page" id="page-profile">
+<div id="profileContent"></div>
+</div>
+
+</div>
+</div>
+
+<!-- POST MODAL -->
+<div class="modal-overlay" id="postModal">
+<div class="modal-box" style="padding:1.75rem">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+<h3 style="font-size:1.1rem;font-weight:700;color:#e4e4e7">Create Post</h3>
+<button onclick="closePostModal()" class="btn-ghost" style="padding:.3rem"><i data-lucide="x" style="width:18px;height:18px"></i></button>
+</div>
+<div style="display:flex;flex-direction:column;gap:.75rem">
+<div><label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Title</label><input type="text" class="input-field" id="postTitle" placeholder="What's on your mind?" required></div>
+<div><label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Category</label>
+<select class="input-field" id="postCategory">
+<option value="General">General</option>
+<option value="Tech">Tech</option>
+<option value="Design">Design</option>
+<option value="Business">Business</option>
+<option value="Showcase">Showcase</option>
+<option value="Help">Help</option>
+<option value="Off-Topic">Off-Topic</option>
+</select></div>
+<div><label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Content</label><textarea class="input-field" id="postContent" placeholder="Share more details..." style="min-height:120px" required></textarea></div>
+<button class="btn-primary" style="width:100%;justify-content:center;margin-top:.5rem" onclick="submitPost()" id="postSubmitBtn">Publish Post</button>
+</div>
+</div>
+</div>
+
+<!-- SUBMIT IDEA MODAL -->
+<div class="modal-overlay" id="ideaModal">
+  <div class="modal-box" style="padding:1.75rem;max-width:560px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.35rem">
+      <h3 style="font-size:1.1rem;font-weight:700;color:#e4e4e7">Submit an Idea</h3>
+      <button onclick="closeIdeaModal()" class="btn-ghost" style="padding:.3rem"><i data-lucide="x" style="width:18px;height:18px"></i></button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.85rem">
+      <!-- Title -->
+      <div>
+        <label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Idea Title <span style="color:#f87171">*</span></label>
+        <input type="text" class="input-field" id="ideaTitle" placeholder="Brief summary of your idea" maxlength="120" required>
+        <div style="text-align:right;font-size:.62rem;color:#3f3f46;margin-top:.15rem"><span id="ideaTitleCount">0</span>/120</div>
+      </div>
+      <!-- Site Target -->
+      <div>
+        <label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Which site does this involve? <span style="color:#f87171">*</span></label>
+        <select class="input-field" id="ideaSiteTarget">
+          <option value="Overall">Overall (All Sites)</option>
+        </select>
+      </div>
+      <!-- Category -->
+      <div>
+        <label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Category <span style="color:#f87171">*</span></label>
+        <select class="input-field" id="ideaCategory">
+          <option value="Feature Request">Feature Request</option>
+          <option value="Improvement">Improvement</option>
+          <option value="Bug Fix">Bug Fix</option>
+          <option value="Removal">Removal</option>
+          <option value="Redesign">Redesign</option>
+          <option value="New Idea">New Idea</option>
+        </select>
+      </div>
+      <!-- Description -->
+      <div>
+        <label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Describe your idea <span style="color:#f87171">*</span></label>
+        <textarea class="input-field" id="ideaDescription" placeholder="Be as detailed as possible — what should change, how should it work, why would it help?" style="min-height:110px" maxlength="2000" required></textarea>
+        <div style="text-align:right;font-size:.62rem;color:#3f3f46;margin-top:.15rem"><span id="ideaDescCount">0</span>/2000</div>
+      </div>
+      <!-- Helpfulness Rating -->
+      <div>
+        <label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">How much would this help you?</label>
+        <div style="padding:.5rem .25rem 0">
+          <input type="range" min="1" max="10" value="5" id="ideaRating" oninput="updateRatingPreview(this.value)">
+          <div style="display:flex;justify-content:space-between;margin-top:.35rem">
+            <span style="font-size:.65rem;color:#52525b">Not at all</span>
+            <span id="ratingPreviewValue" style="font-size:.9rem;font-weight:800;color:#a78bfa">5<span style="font-size:.7rem;font-weight:500;color:#52525b">/10</span></span>
+            <span style="font-size:.65rem;color:#52525b">Extremely</span>
+          </div>
+        </div>
+      </div>
+      <!-- What to Remove -->
+      <div>
+        <label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">What should be removed or changed? <span style="color:#3f3f46;font-weight:400">(optional)</span></label>
+        <textarea class="input-field" id="ideaRemove" placeholder="Describe any features, elements, or behaviors that should be removed or changed to make room for this idea..." style="min-height:70px" maxlength="800"></textarea>
+        <div style="text-align:right;font-size:.62rem;color:#3f3f46;margin-top:.15rem"><span id="ideaRemoveCount">0</span>/800</div>
+      </div>
+      <!-- Submit -->
+      <button class="btn-primary" style="width:100%;justify-content:center;margin-top:.35rem" onclick="submitIdea()" id="ideaSubmitBtn">Submit Idea</button>
+    </div>
+  </div>
+</div>
+
+<!-- IDEA DETAIL MODAL -->
+<div class="modal-overlay" id="ideaDetailModal">
+  <div class="modal-box" style="padding:0;max-width:620px;max-height:88vh;display:flex;flex-direction:column">
+    <!-- Detail Header -->
+    <div style="padding:1.5rem 1.5rem 0;flex-shrink:0">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+        <h3 style="font-size:1rem;font-weight:700;color:#71717a">Idea Details</h3>
+        <button onclick="closeIdeaDetail()" class="btn-ghost" style="padding:.3rem"><i data-lucide="x" style="width:18px;height:18px"></i></button>
+      </div>
+      <div id="ideaDetailContent"></div>
+    </div>
+    <!-- Replies Section -->
+    <div style="flex:1;overflow-y:auto;padding:0 1.5rem" id="ideaRepliesWrap">
+      <div class="divider" style="margin:1rem 0"></div>
+      <h4 style="font-size:.88rem;font-weight:700;color:#e4e4e7;margin-bottom:.85rem" id="repliesHeading">Replies (0)</h4>
+      <div style="display:flex;flex-direction:column;gap:.65rem" id="ideaRepliesList"></div>
+    </div>
+    <!-- Reply Input -->
+    <div style="padding:1rem 1.5rem 1.5rem;border-top:1px solid rgba(139,92,246,.08);flex-shrink:0">
+      <div style="display:flex;gap:.5rem;align-items:flex-end">
+        <textarea class="input-field" id="replyInput" placeholder="Write a reply..." style="min-height:44px;max-height:120px;resize:none;flex:1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitReply()}"></textarea>
+        <button class="btn-primary" style="padding:.65rem .9rem;flex-shrink:0" onclick="submitReply()" id="replySubmitBtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="m22 2-7 20-4-9-9-4z"/><path d="m22 2-11 11"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CALL MODAL -->
+<div class="modal-overlay" id="callModal">
+<div class="modal-box" style="padding:1.5rem;max-width:420px">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+<h3 style="font-size:1rem;font-weight:700;color:#e4e4e7" id="callTitle">Call</h3>
+<button onclick="endCall()" class="btn-ghost" style="padding:.3rem"><i data-lucide="x" style="width:18px;height:18px"></i></button>
+</div>
+<div id="callStatus" style="text-align:center;color:#71717a;font-size:.85rem;margin-bottom:1rem">Connecting...</div>
+<div style="display:flex;flex-direction:column;gap:.75rem">
+<video id="remoteVideo" autoplay playsinline style="display:none;width:100%;border-radius:.75rem;background:#111;max-height:300px"></video>
+<div id="localVideoWrap" style="display:none;position:relative;height:0">
+<video id="localVideo" autoplay playsinline muted style="width:120px;height:90px;border-radius:.6rem;object-fit:cover;position:absolute;bottom:.5rem;right:.5rem;border:2px solid rgba(139,92,246,.3)"></video>
+</div>
+</div>
+<div style="display:flex;justify-content:center;margin-top:1.25rem">
+<button onclick="endCall()" class="btn-danger" style="padding:.6rem 2rem;border-radius:9999px;display:flex;align-items:center;gap:.4rem"><i data-lucide="phone-off" style="width:16px;height:16px"></i>End Call</button>
+</div>
+</div>
+</div>
+
+<script>
+// ===================== SUPABASE =====================
+const { createClient } = supabase;
+const supabaseClient = createClient(
+    'https://gfsqzkyviivhvyqadpeg.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdmc3F6a3l2aWl2aHZ5cWFkcGVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0NDI0NDQsImV4cCI6MjA4NjAxODQ0NH0.MwC6dMZKFZMyklCJKqr4DPek8dxR-EswBZSd1L_AkMA',
+    { auth: { persistSession: true, storageKey: 'ep-auth' } }
+);
+
+// ===================== STATE =====================
+let currentUser = null;
+let currentProfile = null;
+let peerInstance = null;
+let activeCall = null;
+let localStream = null;
+let currentCategory = 'All';
+
+// ===================== DATA =====================
+const epsilonSites =[
+  {
+    "name": "Epsilon Panel",
+    "desc": "Order websites, track progress, manage your business",
+    "url": "https://epsilonpanel.vercel.app",
+    "img": "https://picsum.photos/seed/dashboard-tech/600/400",
+    "tags": ["Dashboard", "Business"]
+  },
+  {
+    "name": "Epsilon Sports",
+    "desc": "Track scores, stats, and live sports updates",
+    "url": "https://epsilon-sports.vercel.app",
+    "img": "https://picsum.photos/seed/sports-arena/600/400",
+    "tags": ["Sports", "Orange Theme"]
+  },
+  {
+    "name": "Epsilon Motor",
+    "desc": "The ultimate hub for car enthusiasts",
+    "url": "https://epsilon-motor.vercel.app",
+    "img": "https://picsum.photos/seed/supercar-grey/600/400",
+    "tags": ["Automotive", "Grey Theme"]
+  },
+  {
+    "name": "Epsilon Learn",
+    "desc": "Interactive learning and education platform",
+    "url": "https://epsilon-learn.vercel.app",
+    "img": "https://picsum.photos/seed/education-code/600/400",
+    "tags": ["Education", "Green Theme"]
+  },
+  {
+    "name": "Epsilon Azure",
+    "desc": "Business management system (BMS) and ERP platform",
+    "url": "https://epsilon-azure.vercel.app",
+    "img": "https://picsum.photos/seed/corporate-blue/600/400",
+    "tags": ["ERP", "Blue Theme"]
+  },
+  {
+    "name": "Epsilon Heckle",
+    "desc": "Gaming portal and interactive community",
+    "url": "https://epsilon-heckle.vercel.app",
+    "img": "https://picsum.photos/seed/gaming-setup/600/400",
+    "tags": ["Gaming", "Red Theme"]
+  },
+  {
+    "name": "Epsilon Editz",
+    "desc": "Media editing software and tools",
+    "url": "https://epsilon-editz.vercel.app",
+    "img": "https://picsum.photos/seed/video-editing/600/400",
+    "tags": ["Media", "Yellow Theme"]
+  },
+  {
+    "name": "Neote Language",
+    "desc": "Custom programming language compiled to JavaScript",
+    "url": "https://epsilon-neote.vercel.app",
+    "img": "https://picsum.photos/seed/cyberpunk-code/600/400",
+    "tags": ["Compiler", "Purple Theme"]
+  },
+  {
+    "name": "Epsilon AI",
+    "desc": "AI assistant and intelligent ecosystem integration",
+    "url": "https://epsiai.vercel.app",
+    "img": "https://picsum.photos/seed/ai-neural/600/400",
+    "tags": ["Artificial Intelligence", "Ecosystem"]
+  }
+]
+
+const themes = [
+    { name: 'purple', color: '#8b5cf6' },
+    { name: 'pink', color: '#ec4899' },
+    { name: 'red', color: '#ef4444' },
+    { name: 'orange', color: '#f97316' },
+    { name: 'yellow', color: '#eab308' },
+    { name: 'blue', color: '#3b82f6' },
+    { name: 'green', color: '#22c55e' },
+    { name: 'white', color: '#e4e4e7' },
+];
+
+const categories = ['All', 'General', 'Tech', 'Design', 'Business', 'Showcase', 'Help', 'Off-Topic'];
+
+// ===================== TOAST =====================
+function toast(msg, type = 'info') {
+    const c = document.getElementById('toastContainer');
+    const t = document.createElement('div');
+    t.className = `toast toast-${type}`;
+    t.textContent = msg;
+    c.appendChild(t);
+    requestAnimationFrame(() => t.classList.add('show'));
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3500);
+}
+
+// ===================== AUTH UI =====================
+function switchAuth(mode) {
+    document.getElementById('tabIn').style.color = mode === 'in' ? '#a78bfa' : '#52525b';
+    document.getElementById('tabIn').style.borderBottomColor = mode === 'in' ? '#8b5cf6' : 'transparent';
+    document.getElementById('tabUp').style.color = mode === 'up' ? '#a78bfa' : '#52525b';
+    document.getElementById('tabUp').style.borderBottomColor = mode === 'up' ? '#8b5cf6' : 'transparent';
+    document.getElementById('formIn').style.display = mode === 'in' ? 'flex' : 'none';
+    document.getElementById('formUp').style.display = mode === 'up' ? 'flex' : 'none';
+}
+
+// ===================== SIGN IN =====================
+async function signIn(e) {
+    e.preventDefault();
+    const btn = document.getElementById('siBtn');
+    const err = document.getElementById('siErr');
+    btn.disabled = true; btn.textContent = 'Signing in...'; err.style.display = 'none';
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email: document.getElementById('siEmail').value,
+        password: document.getElementById('siPass').value
+    });
+    btn.disabled = false; btn.textContent = 'Sign In';
+    if (error) { err.textContent = error.message; err.style.display = 'block'; }
+}
+
+// ===================== SIGN UP =====================
+async function signUp(e) {
+    e.preventDefault();
+    const btn = document.getElementById('suBtn');
+    const err = document.getElementById('suErr');
+    const username = document.getElementById('suUser').value.trim().toLowerCase();
+    const displayName = document.getElementById('suName').value.trim();
+    const email = document.getElementById('suEmail').value.trim();
+    const password = document.getElementById('suPass').value;
+    const bio = document.getElementById('suBio').value.trim();
+    const location = document.getElementById('suLocation').value.trim();
+
+    btn.disabled = true;
+    btn.textContent = 'Creating account...';
+    err.style.display = 'none';
+
+    // Check username uniqueness in public profiles first
+    const { data: existing } = await supabaseClient
+        .from('profiles')
+        .select('id')
+        .eq('username', username)
+        .maybeSingle();
+
+    if (existing) {
+        err.textContent = 'Username is already taken';
+        err.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
+        return;
+    }
+
+    // Generate a random seed from username for a unique picsum avatar
+    const avatarSeed = username + '_avatar_' + Math.random().toString(36).substring(2, 6);
+    const profilePic = `https://picsum.photos/seed/${encodeURIComponent(avatarSeed)}/200/200`;
+
+    // Generate a peer_id upfront
+    const peerId = 'ephub_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 8);
+
+    // 1. Sign up the user in Supabase Auth
+    const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+        email,
+        password,
+        options: { data: { username, display_name: displayName } }
+    });
+
+    if (authError) {
+        err.textContent = authError.message;
+        err.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
+        return;
+    }
+
+    // 2. Insert into the public.profiles table using the generated Auth ID
+    if (authData && authData.user) {
+        const { error: profileError } = await supabaseClient.from('profiles').insert({
+            id: authData.user.id,
+            username: username,
+            display_name: displayName,
+            email: email,
+            bio: bio || null,
+            location: location || null,
+            website: null,
+            profile_pic: profilePic,
+            followers: [],
+            following: [],
+            theme: 'purple',
+            peer_id: peerId,
+            garage_cars: [],
+            tokens: 1000,
+            db: { api_keys: [], collections: {} }
+        });
+
+        if (profileError) {
+            console.error("Profile Row Error:", profileError);
+            err.textContent = 'Auth succeeded, but profile creation failed: ' + profileError.message;
+            err.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'Create Account';
+            return;
+        }
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Create Account';
+    toast('Account created successfully!', 'success');
+}
+
+// ===================== SIGN OUT =====================
+async function signOut() {
+    if (peerInstance) { peerInstance.destroy(); peerInstance = null; }
+    await supabaseClient.auth.signOut();
+    currentUser = null;
+    currentProfile = null;
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('authPage').style.display = 'flex';
+    window.location.hash = '';
+}
+
+// ===================== PEER JS =====================
+function initPeer(savedPeerId) {
+    if (peerInstance) return;
+    const useId = savedPeerId || ('ephub_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 8));
+    peerInstance = new Peer(useId, { debug: 0 });
+
+    peerInstance.on('open', async (id) => {
+        console.log('Peer connected:', id);
+        if (currentUser) {
+            await supabaseClient.from('profiles').update({ peer_id: id }).eq('id', currentUser.id);
+            if (currentProfile) currentProfile.peer_id = id;
+        }
+    });
+
+    peerInstance.on('call', async (call) => {
+        try {
+            localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+            call.answer(localStream);
+            showCallUI(call.peer, false);
+            call.on('stream', (remoteStream) => {
+                const rv = document.getElementById('remoteVideo');
+                rv.srcObject = remoteStream;
+                rv.style.display = 'block';
+                document.getElementById('localVideo').srcObject = localStream;
+                document.getElementById('localVideoWrap').style.display = 'block';
+                document.getElementById('callStatus').textContent = 'Connected';
+                document.getElementById('callStatus').style.color = '#4ade80';
+            });
+            activeCall = call;
+        } catch (err) {
+            toast('Could not answer call: ' + err.message, 'error');
+        }
+    });
+
+    peerInstance.on('error', (err) => {
+        console.error('Peer error:', err);
+        if (err.type === 'unavailable-id') {
+            // ID collision — generate a new one and retry
+            peerInstance.destroy();
+            peerInstance = null;
+            initPeer();
+        }
+    });
+}
+
+async function ensurePeerId() {
+    if (!currentProfile) return;
+    if (currentProfile.peer_id) {
+        if (!peerInstance) initPeer(currentProfile.peer_id);
+        return;
+    }
+    initPeer();
+}
+
+async function callUser(peerId, displayName) {
+    if (!peerId) { toast('This user is not available for calls', 'error'); return; }
+    if (!peerInstance) { toast('Your call connection is not ready yet', 'error'); return; }
+    try {
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+        const call = peerInstance.call(peerId, localStream);
+        if (!call) { toast('Failed to initiate call', 'error'); return; }
+        showCallUI(displayName, true);
+        call.on('stream', (remoteStream) => {
+            const rv = document.getElementById('remoteVideo');
+            rv.srcObject = remoteStream;
+            rv.style.display = 'block';
+            document.getElementById('localVideo').srcObject = localStream;
+            document.getElementById('localVideoWrap').style.display = 'block';
+            document.getElementById('callStatus').textContent = 'Connected';
+            document.getElementById('callStatus').style.color = '#4ade80';
+        });
+        call.on('close', () => endCall());
+        activeCall = call;
+    } catch (err) {
+        toast('Call failed: ' + err.message, 'error');
+    }
+}
+
+function showCallUI(name, isOutgoing) {
+    document.getElementById('callTitle').textContent = name;
+    document.getElementById('callStatus').textContent = isOutgoing ? 'Calling...' : 'Incoming call...';
+    document.getElementById('callStatus').style.color = '#a78bfa';
+    document.getElementById('remoteVideo').style.display = 'none';
+    document.getElementById('localVideoWrap').style.display = 'none';
+    document.getElementById('callModal').classList.add('active');
+}
+
+function endCall() {
+    if (activeCall) { activeCall.close(); activeCall = null; }
+    if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
+    document.getElementById('callModal').classList.remove('active');
+    document.getElementById('remoteVideo').srcObject = null;
+    document.getElementById('localVideo').srcObject = null;
+}
+
+// ===================== ROUTING =====================
+function goTo(page, data) {
+    if (page === 'profile' && data) {
+        window.location.hash = '@' + data;
+        return;
+    }
+    window.location.hash = page;
+}
+
+function handleRoute() {
+    const hash = window.location.hash.slice(1) || 'home';
+
+    if (hash.startsWith('@')) {
+        const username = hash.slice(1);
+        showPage('profile');
+        loadProfileByUsername(username);
+        updateNav(null);
+        return;
+    }
+
+    showPage(hash);
+    updateNav(hash);
+
+    switch (hash) {
+        case 'home': renderSites(); break;
+        case 'posts': loadPosts(); renderCategoryFilters(); break;
+        case 'users': loadUsers(); break;
+        case 'settings': loadSettings(); renderThemePicker(); break;
+        case 'profile': if (currentUser) loadProfileById(currentUser.id); break;
+    }
+}
+
+function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const el = document.getElementById('page-' + name);
+    if (el) el.classList.add('active');
+    if (window.innerWidth <= 768) {
+        document.getElementById('sidebar').classList.remove('open');
+    }
+}
+
+function updateNav(active) {
+    document.querySelectorAll('.nav-btn').forEach(b => {
+        b.classList.toggle('active-nav', b.dataset.nav === active);
+    });
+}
+
+// ===================== RENDER SITES =====================
+function renderSites() {
+    const grid = document.getElementById('sitesGrid');
+    grid.innerHTML = epsilonSites.map(s => `
+        <div class="site-card" onclick="window.open('${s.url}','_blank')">
+            <div style="height:180px;overflow:hidden;position:relative">
+                <img src="${s.img}" alt="${s.name}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'" loading="lazy">
+                <div style="position:absolute;bottom:0;left:0;right:0;height:70px;background:linear-gradient(transparent,rgba(20,20,30,.95))"></div>
+                <div style="position:absolute;bottom:.75rem;left:1rem;right:1rem">
+                    <h3 style="font-size:1.05rem;font-weight:700;color:#e4e4e7">${s.name}</h3>
+                </div>
+            </div>
+            <div style="padding:1rem 1.15rem 1.15rem">
+                <p style="font-size:.8rem;color:#71717a;line-height:1.5;margin-bottom:.75rem">${s.desc}</p>
+                <div style="display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.85rem">${s.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+                <button class="btn-outline btn-sm" onclick="event.stopPropagation();window.open('${s.url}','_blank')">Visit Site</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// ===================== POSTS =====================
+function renderCategoryFilters() {
+    const c = document.getElementById('categoryFilters');
+    c.innerHTML = categories.map(cat => `
+        <button onclick="filterCategory('${cat}')" style="padding:.35rem .85rem;border-radius:9999px;font-size:.76rem;font-weight:600;border:1px solid ${currentCategory === cat ? 'rgba(139,92,246,.5)' : 'rgba(139,92,246,.12)'};background:${currentCategory === cat ? 'rgba(139,92,246,.15)' : 'transparent'};color:${currentCategory === cat ? '#c4b5fd' : '#71717a'};cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif">${cat}</button>
+    `).join('');
+}
+
+function filterCategory(cat) {
+    currentCategory = cat;
+    renderCategoryFilters();
+    loadPosts();
+}
+
+async function loadPosts() {
+    const feed = document.getElementById('postsFeed');
+    feed.innerHTML = '<div style="text-align:center;padding:2rem;color:#52525b">Loading posts...</div>';
+
+    let query = supabaseClient.from('posts').select('*,profiles(username,display_name,profile_pic)').order('created_at', { ascending: false });
+    if (currentCategory !== 'All') query = query.eq('category', currentCategory);
+
+    const { data: posts, error } = await query;
+    if (error) { feed.innerHTML = '<div style="text-align:center;padding:2rem;color:#f87171">Failed to load posts</div>'; return; }
+    if (!posts || posts.length === 0) {
+        feed.innerHTML = '<div style="text-align:center;padding:3rem;color:#52525b"><p style="font-size:1.1rem;margin-bottom:.5rem">No posts yet</p><p style="font-size:.84rem">Be the first to share something!</p></div>';
+        return;
+    }
+
+    feed.innerHTML = posts.map(p => {
+        const author = p.profiles || {};
+        const initials = (author.display_name || author.username || '?').charAt(0).toUpperCase();
+        const avatarHtml = author.profile_pic
+            ? `<div class="avatar avatar-sm" style="overflow:hidden"><img src="${author.profile_pic}" onerror="this.parentElement.textContent='${initials}'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div>`
+            : `<div class="avatar avatar-sm">${initials}</div>`;
+        const isLiked = currentUser && p.liked_by && p.liked_by.includes(currentUser.id);
+        const timeAgo = getTimeAgo(p.created_at);
+        return `
+        <div class="post-card">
+            <div style="display:flex;align-items:center;gap:.7rem;margin-bottom:.85rem">
+                <div style="cursor:pointer" onclick="goTo('profile','${author.username || ''}')">${avatarHtml}</div>
+                <div style="flex:1;min-width:0">
+                    <div style="font-size:.85rem;font-weight:600;color:#e4e4e7;cursor:pointer" onclick="goTo('profile','${author.username || ''}')">${escHtml(author.display_name || author.username || 'Unknown')}</div>
+                    <div style="font-size:.7rem;color:#52525b">@${escHtml(author.username || 'user')} · ${timeAgo}</div>
+                </div>
+                <span class="tag">${p.category}</span>
+            </div>
+            <h3 style="font-size:1.05rem;font-weight:700;color:#e4e4e7;margin-bottom:.4rem">${escHtml(p.title)}</h3>
+            <p style="font-size:.85rem;color:#a1a1aa;line-height:1.65;white-space:pre-wrap;word-break:break-word">${escHtml(p.content)}</p>
+            <div style="display:flex;align-items:center;gap:.75rem;margin-top:.85rem">
+                <button class="like-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike(${p.id}, this)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="${isLiked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></svg>
+                    ${p.likes || 0}
+                </button>
+                ${currentUser && p.user_id === currentUser.id ? `<button class="btn-ghost" style="font-size:.75rem;color:#71717a" onclick="deletePost(${p.id})"><i data-lucide="trash-2" style="width:13px;height:13px;display:inline;vertical-align:middle;margin-right:.2rem"></i>Delete</button>` : ''}
+            </div>
+        </div>`;
+    }).join('');
+    lucide.createIcons();
+}
+
+async function toggleLike(postId, btn) {
+    if (!currentUser) { toast('Sign in to like posts', 'error'); return; }
+    const { data: post } = await supabaseClient.from('posts').select('likes,liked_by').eq('id', postId).single();
+    if (!post) return;
+    const likedBy = post.liked_by || [];
+    const isLiked = likedBy.includes(currentUser.id);
+    let newLikes = post.likes || 0;
+    let newLikedBy = [...likedBy];
+
+    if (isLiked) {
+        newLikedBy = newLikedBy.filter(id => id !== currentUser.id);
+        newLikes = Math.max(0, newLikes - 1);
+    } else {
+        newLikedBy.push(currentUser.id);
+        newLikes += 1;
+    }
+
+    await supabaseClient.from('posts').update({ likes: newLikes, liked_by: newLikedBy }).eq('id', postId);
+    loadPosts();
+}
+
+async function deletePost(postId) {
+    if (!confirm('Delete this post?')) return;
+    await supabaseClient.from('posts').delete().eq('id', postId);
+    toast('Post deleted', 'success');
+    loadPosts();
+}
+
+function openPostModal() {
+    if (!currentUser) { toast('Sign in to create posts', 'error'); return; }
+    document.getElementById('postTitle').value = '';
+    document.getElementById('postContent').value = '';
+    document.getElementById('postCategory').value = 'General';
+    document.getElementById('postModal').classList.add('active');
+}
+
+function closePostModal() {
+    document.getElementById('postModal').classList.remove('active');
+}
+
+async function submitPost() {
+    const title = document.getElementById('postTitle').value.trim();
+    const content = document.getElementById('postContent').value.trim();
+    const category = document.getElementById('postCategory').value;
+    if (!title || !content) { toast('Fill in all fields', 'error'); return; }
+
+    const btn = document.getElementById('postSubmitBtn');
+    btn.disabled = true; btn.textContent = 'Publishing...';
+
+    const { error } = await supabaseClient.from('posts').insert({ title, content, category, user_id: currentUser.id });
+    btn.disabled = false; btn.textContent = 'Publish Post';
+
+    if (error) { toast('Failed to create post: ' + error.message, 'error'); }
+    else { closePostModal(); toast('Post published!', 'success'); loadPosts(); }
+}
+
+// ===================== USERS =====================
+let usersTimeout;
+async function loadUsers(search = '') {
+    const grid = document.getElementById('usersGrid');
+    grid.innerHTML = '<div style="text-align:center;padding:2rem;color:#52525b">Loading users...</div>';
+
+    let query = supabaseClient.from('profiles').select('id,username,display_name,profile_pic,bio,peer_id,created_at').order('created_at', { ascending: false }).limit(50);
+    if (search) {
+        query = query.or(`username.ilike.%${search}%,display_name.ilike.%${search}%`);
+    }
+
+    const { data: users, error } = await query;
+    if (error || !users || users.length === 0) {
+        grid.innerHTML = '<div style="text-align:center;padding:3rem;color:#52525b">No users found</div>';
+        return;
+    }
+
+    grid.innerHTML = users.map(u => {
+        const initials = (u.display_name || u.username || '?').charAt(0).toUpperCase();
+        const avatarHtml = u.profile_pic
+            ? `<div class="avatar" style="overflow:hidden"><img src="${u.profile_pic}" onerror="this.parentElement.textContent='${initials}'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div>`
+            : `<div class="avatar">${initials}</div>`;
+        const canCall = !!u.peer_id;
+        const isSelf = currentUser && u.id === currentUser.id;
+        return `
+        <div class="user-card" onclick="goTo('profile','${u.username}')">
+            <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem">
+                ${avatarHtml}
+                <div style="flex:1;min-width:0">
+                    <div style="font-size:.9rem;font-weight:600;color:#e4e4e7;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(u.display_name || u.username)}</div>
+                    <div style="font-size:.72rem;color:#52525b">@${escHtml(u.username || 'user')}</div>
+                </div>
+                ${u.peer_id ? '<div class="pulse-dot" title="Online"></div>' : ''}
+            </div>
+            ${u.bio ? `<p style="font-size:.78rem;color:#71717a;line-height:1.5;margin-bottom:.6rem;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${escHtml(u.bio)}</p>` : ''}
+            <div style="display:flex;gap:.5rem" onclick="event.stopPropagation()">
+                ${!isSelf ? `<button class="call-btn" ${!canCall ? 'disabled title="User offline"' : ''} onclick="callUser('${u.peer_id || ''}','${escHtml(u.display_name || u.username)}')"><i data-lucide="phone" style="width:13px;height:13px"></i>Call</button>` : ''}
+            </div>
+        </div>`;
+    }).join('');
+    lucide.createIcons();
+}
+
+function searchUsers(val) {
+    clearTimeout(usersTimeout);
+    usersTimeout = setTimeout(() => loadUsers(val.trim()), 300);
+}
+
+// ===================== PROFILE =====================
+async function loadProfileByUsername(username) {
+    const content = document.getElementById('profileContent');
+    content.innerHTML = '<div style="text-align:center;padding:3rem;color:#52525b">Loading profile...</div>';
+    const { data: profile, error } = await supabaseClient.from('profiles').select('*').eq('username', username).maybeSingle();
+    if (error || !profile) {
+        content.innerHTML = '<div style="text-align:center;padding:3rem;color:#52525b"><p style="font-size:1.1rem;margin-bottom:.5rem">User not found</p><p style="font-size:.84rem">This username doesn\'t exist</p></div>';
+        return;
+    }
+    renderProfile(profile);
+}
+
+async function loadProfileById(id) {
+    const content = document.getElementById('profileContent');
+    content.innerHTML = '<div style="text-align:center;padding:3rem;color:#52525b">Loading...</div>';
+    const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', id).single();
+    if (!profile) { content.innerHTML = '<div style="text-align:center;padding:3rem;color:#52525b">User not found</div>'; return; }
+    renderProfile(profile);
+}
+
+async function renderProfile(profile) {
+    const content = document.getElementById('profileContent');
+    const isSelf = currentUser && profile.id === currentUser.id;
+    const isFollowing = currentUser && profile.followers && profile.followers.includes(currentUser.id);
+    const initials = (profile.display_name || profile.username || '?').charAt(0).toUpperCase();
+    const avatarHtml = profile.profile_pic
+        ? `<div class="avatar avatar-xl" style="overflow:hidden;border:3px solid rgba(139,92,246,.3)"><img src="${profile.profile_pic}" onerror="this.parentElement.textContent='${initials}'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div>`
+        : `<div class="avatar avatar-xl" style="border:3px solid rgba(139,92,246,.3)">${initials}</div>`;
+    const canCall = !!profile.peer_id;
+
+    const { data: posts } = await supabaseClient.from('posts').select('*').eq('user_id', profile.id).order('created_at', { ascending: false }).limit(20);
+    const postsHtml = (!posts || posts.length === 0)
+        ? '<p style="color:#52525b;font-size:.84rem">No posts yet</p>'
+        : posts.map(p => `
+            <div class="post-card" style="margin-bottom:.75rem">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
+                    <span class="tag">${p.category}</span>
+                    <span style="font-size:.7rem;color:#52525b">${getTimeAgo(p.created_at)}</span>
+                </div>
+                <h4 style="font-size:.95rem;font-weight:700;color:#e4e4e7;margin-bottom:.3rem">${escHtml(p.title)}</h4>
+                <p style="font-size:.82rem;color:#a1a1aa;line-height:1.6;white-space:pre-wrap">${escHtml(p.content)}</p>
+                <div style="margin-top:.6rem">
+                    <span style="font-size:.75rem;color:#71717a">${p.likes || 0} likes</span>
+                </div>
+            </div>`).join('');
+
+    content.innerHTML = `
+    <div style="background:linear-gradient(135deg,rgba(124,58,237,.1),rgba(139,92,246,.05));border:1px solid rgba(139,92,246,.1);border-radius:1.15rem;padding:2rem;margin-bottom:1.5rem">
+        <div style="display:flex;align-items:flex-start;gap:1.25rem;flex-wrap:wrap">
+            ${avatarHtml}
+            <div style="flex:1;min-width:200px">
+                <h2 style="font-size:1.4rem;font-weight:800;color:#e4e4e7">${escHtml(profile.display_name || profile.username)}</h2>
+                <p style="font-size:.85rem;color:#71717a;margin-top:.15rem">@${escHtml(profile.username || 'user')}</p>
+                ${profile.bio ? `<p style="font-size:.85rem;color:#a1a1aa;margin-top:.65rem;line-height:1.6">${escHtml(profile.bio)}</p>` : ''}
+                <div style="display:flex;flex-wrap:wrap;gap:1.25rem;margin-top:.85rem;font-size:.8rem;color:#52525b">
+                    <span><strong style="color:#e4e4e7">${profile.followers ? profile.followers.length : 0}</strong> followers</span>
+                    <span><strong style="color:#e4e4e7">${profile.following ? profile.following.length : 0}</strong> following</span>
+                    <span><strong style="color:#e4e4e7">${posts ? posts.length : 0}</strong> posts</span>
+                    <span><strong style="color:#e4e4e7">${profile.tokens || 0}</strong> tokens</span>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem;align-items:center">
+                    ${!isSelf ? `
+                        <button class="follow-btn ${isFollowing ? 'following' : ''}" onclick="toggleFollow('${profile.id}', this)">${isFollowing ? 'Following' : 'Follow'}</button>
+                        <button class="call-btn" ${!canCall ? 'disabled' : ''} onclick="callUser('${profile.peer_id || ''}','${escHtml(profile.display_name || profile.username)}')"><i data-lucide="phone" style="width:13px;height:13px"></i>${canCall ? 'Call' : 'Offline'}</button>
+                    ` : `<button class="btn-outline btn-sm" onclick="goTo('settings')">Edit Profile</button>`}
+                    ${profile.location ? `<span style="font-size:.78rem;color:#52525b;display:flex;align-items:center;gap:.25rem"><i data-lucide="map-pin" style="width:13px;height:13px"></i>${escHtml(profile.location)}</span>` : ''}
+                </div>
+            </div>
+        </div>
+        ${profile.website ? `<div style="margin-top:1rem"><a href="${escHtml(profile.website)}" target="_blank" style="font-size:.82rem;color:#a78bfa;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem"><i data-lucide="external-link" style="width:13px;height:13px"></i>${escHtml(profile.website)}</a></div>` : ''}
+    </div>
+    <h3 style="font-size:1.1rem;font-weight:700;color:#e4e4e7;margin-bottom:1rem">Posts</h3>
+    ${postsHtml}`;
+    lucide.createIcons();
+}
+
+async function toggleFollow(userId, btn) {
+    if (!currentUser) { toast('Sign in to follow users', 'error'); return; }
+    const { data: target } = await supabaseClient.from('profiles').select('followers').eq('id', userId).single();
+    if (!target) return;
+    const { data: me } = await supabaseClient.from('profiles').select('following').eq('id', currentUser.id).single();
+    if (!me) return;
+
+    const followers = target.followers || [];
+    const following = me.following || [];
+    const isFollowing = followers.includes(currentUser.id);
+
+    let newFollowers, newFollowing;
+    if (isFollowing) {
+        newFollowers = followers.filter(id => id !== currentUser.id);
+        newFollowing = following.filter(id => id !== userId);
+        btn.textContent = 'Follow';
+        btn.classList.remove('following');
+    } else {
+        newFollowers = [...followers, currentUser.id];
+        newFollowing = [...following, userId];
+        btn.textContent = 'Following';
+        btn.classList.add('following');
+    }
+
+    await supabaseClient.from('profiles').update({ followers: newFollowers }).eq('id', userId);
+    await supabaseClient.from('profiles').update({ following: newFollowing }).eq('id', currentUser.id);
+    toast(isFollowing ? 'Unfollowed' : 'Followed!', 'success');
+}
+
+// ===================== SETTINGS =====================
+function loadSettings() {
+    if (!currentProfile) return;
+    document.getElementById('setDisplayName').value = currentProfile.display_name || '';
+    document.getElementById('setUsername').value = currentProfile.username || '';
+    document.getElementById('setBio').value = currentProfile.bio || '';
+    document.getElementById('setLocation').value = currentProfile.location || '';
+    document.getElementById('setWebsite').value = currentProfile.website || '';
+    document.getElementById('setPic').value = currentProfile.profile_pic || '';
+}
+
+function renderThemePicker() {
+    const picker = document.getElementById('themePicker');
+    picker.innerHTML = themes.map(t => `
+        <button onclick="setTheme('${t.name}')" style="width:40px;height:40px;border-radius:50%;background:${t.color};border:3px solid ${currentProfile && currentProfile.theme === t.name ? '#fff' : 'transparent'};cursor:pointer;transition:all .2s;box-shadow:${currentProfile && currentProfile.theme === t.name ? '0 0 0 2px rgba(255,255,255,.2)' : 'none'}" title="${t.name}"></button>
+    `).join('');
+}
+
+async function setTheme(theme) {
+    if (!currentUser) return;
+    await supabaseClient.from('profiles').update({ theme }).eq('id', currentUser.id);
+    currentProfile.theme = theme;
+    applyTheme(theme);
+    renderThemePicker();
+    toast('Theme updated', 'success');
+}
+
+function applyTheme(theme) {
+    const t = themes.find(t => t.name === theme) || themes[0];
+    const c = t.color;
+    document.documentElement.style.setProperty('--accent', c);
+    const s = document.createElement('style');
+    s.id = 'dynamic-theme';
+    const old = document.getElementById('dynamic-theme');
+    if (old) old.remove();
+    s.textContent = `
+        .btn-primary{background:linear-gradient(135deg,${c},${c}dd,${c}aa)!important}
+        .nav-btn.active-nav{background:linear-gradient(135deg,${c}30,${c}20)!important;color:${c}cc!important;border-color:${c}30!important}
+        .like-btn.liked{color:#f472b6;border-color:rgba(244,114,182,.3);background:rgba(244,114,182,.1)}
+        .tag{background:${c}15;color:${c}cc;border-color:${c}20}
+        .follow-btn.following{background:${c}20;border-color:${c}50;color:${c}cc}
+    `;
+    document.head.appendChild(s);
+}
+
+async function saveSettings() {
+    if (!currentUser) return;
+    const displayName = document.getElementById('setDisplayName').value.trim();
+    const username = document.getElementById('setUsername').value.trim().toLowerCase();
+    const bio = document.getElementById('setBio').value.trim();
+    const location = document.getElementById('setLocation').value.trim();
+    const website = document.getElementById('setWebsite').value.trim();
+    const profilePic = document.getElementById('setPic').value.trim();
+
+    if (!displayName) { toast('Display name is required', 'error'); return; }
+    if (!username || !/^[a-zA-Z0-9_]{3,}$/.test(username)) { toast('Username must be 3+ chars (letters, numbers, underscores)', 'error'); return; }
+
+    if (username !== currentProfile.username) {
+        const { data: existing } = await supabaseClient.from('profiles').select('id').eq('username', username).maybeSingle();
+        if (existing && existing.id !== currentUser.id) { toast('Username is already taken', 'error'); return; }
+    }
+
+    const updates = {
+        display_name: displayName,
+        username,
+        bio: bio || null,
+        location: location || null,
+        website: website || null,
+        profile_pic: profilePic || null,
+        updated_at: new Date().toISOString()
+    };
+    const { error } = await supabaseClient.from('profiles').update(updates).eq('id', currentUser.id);
+    if (error) { toast('Failed to save: ' + error.message, 'error'); return; }
+
+    currentProfile = { ...currentProfile, ...updates };
+    updateSidebar();
+    toast('Settings saved!', 'success');
+}
+
+// ===================== SIDEBAR =====================
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+}
+
+function updateSidebar() {
+    if (!currentProfile) return;
+    const initials = (currentProfile.display_name || currentProfile.username || 'E').charAt(0).toUpperCase();
+    const sideAvatar = document.getElementById('sideAvatar');
+    if (currentProfile.profile_pic) {
+        sideAvatar.innerHTML = `<img src="${currentProfile.profile_pic}" onerror="this.parentElement.textContent='${initials}'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+    } else {
+        sideAvatar.textContent = initials;
+    }
+    document.getElementById('sideName').textContent = currentProfile.display_name || 'User';
+    document.getElementById('sideUser').textContent = '@' + (currentProfile.username || 'user');
+}
+
+// ===================== HELPERS =====================
+function escHtml(str) {
+    if (!str) return '';
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+}
+
+function getTimeAgo(dateStr) {
+    if (!dateStr) return '';
+    const now = new Date();
+    const d = new Date(dateStr);
+    const diff = Math.floor((now - d) / 1000);
+    if (diff < 60) return 'just now';
+    if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+    if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+    if (diff < 604800) return Math.floor(diff / 86400) + 'd ago';
+    return d.toLocaleDateString();
+}
+
+// ===================== INIT =====================
+async function initApp() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+
+    if (session) {
+        currentUser = session.user;
+        const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
+        if (profile) {
+            currentProfile = profile;
+        } else {
+            const meta = session.user.user_metadata || {};
+            const avatarSeed = (meta.username || currentUser.id.substring(0, 8)) + '_avatar_' + Math.random().toString(36).substring(2, 6);
+            const newProfile = {
+                id: currentUser.id,
+                username: meta.username || currentUser.id.substring(0, 8),
+                display_name: meta.display_name || meta.username || 'User',
+                email: currentUser.email,
+                profile_pic: `https://picsum.photos/seed/${encodeURIComponent(avatarSeed)}/200/200`,
+            };
+            const { data: created } = await supabaseClient.from('profiles').upsert(newProfile).select().single();
+            currentProfile = created || newProfile;
+        }
+
+        document.getElementById('authPage').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        updateSidebar();
+        if (currentProfile.theme && currentProfile.theme !== 'purple') applyTheme(currentProfile.theme);
+        ensurePeerId();
+        handleRoute();
+    } else {
+        document.getElementById('authPage').style.display = 'flex';
+        document.getElementById('app').style.display = 'none';
+    }
+
+    lucide.createIcons();
+}
+
+// Auth state listener
+supabaseClient.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+        currentUser = session.user;
+        // Small delay to let the trigger or manual insert complete
+        await new Promise(r => setTimeout(r, 500));
+        const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
+        if (profile) {
+            currentProfile = profile;
+        } else {
+            const meta = session.user.user_metadata || {};
+            const avatarSeed = (meta.username || currentUser.id.substring(0, 8)) + '_avatar_' + Math.random().toString(36).substring(2, 6);
+            const newProfile = {
+                id: currentUser.id,
+                username: meta.username || currentUser.id.substring(0, 8),
+                display_name: meta.display_name || meta.username || 'User',
+                email: currentUser.email,
+                profile_pic: `https://picsum.photos/seed/${encodeURIComponent(avatarSeed)}/200/200`,
+            };
+            const { data: created } = await supabaseClient.from('profiles').upsert(newProfile).select().single();
+            currentProfile = created || newProfile;
+        }
+
+        document.getElementById('authPage').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        updateSidebar();
+        if (currentProfile.theme && currentProfile.theme !== 'purple') applyTheme(currentProfile.theme);
+        ensurePeerId();
+        handleRoute();
+    } else if (event === 'SIGNED_OUT') {
+        currentUser = null;
+        currentProfile = null;
+        document.getElementById('app').style.display = 'none';
+        document.getElementById('authPage').style.display = 'flex';
+    }
+});
+
+// Hash change listener
+window.addEventListener('hashchange', handleRoute);
+
+// Close modals on overlay click
+document.getElementById('postModal').addEventListener('click', (e) => { if (e.target === e.currentTarget) closePostModal(); });
+document.getElementById('callModal').addEventListener('click', (e) => { if (e.target === e.currentTarget) endCall(); });
+
+// Start
+initApp();
+// ===================== IDEAS / CONTRIBUTIONS =====================
+let currentIdeaDetailId = null;
+let ideaSearchDebounce = null;
+
+function debounceIdeaSearch(val) {
+    clearTimeout(ideaSearchDebounce);
+    ideaSearchDebounce = setTimeout(() => loadIdeas(), 300);
+}
+
+function updateRatingPreview(val) {
+    document.getElementById('ratingPreviewValue').innerHTML = val + '<span style="font-size:.7rem;font-weight:500;color:#52525b">/10</span>';
+}
+
+// Character counters for idea modal
+document.getElementById('ideaTitle')?.addEventListener('input', function() {
+    document.getElementById('ideaTitleCount').textContent = this.value.length;
+});
+document.getElementById('ideaDescription')?.addEventListener('input', function() {
+    document.getElementById('ideaDescCount').textContent = this.value.length;
+});
+document.getElementById('ideaRemove')?.addEventListener('input', function() {
+    document.getElementById('ideaRemoveCount').textContent = this.value.length;
+});
+
+function populateSiteFilters() {
+    const filterSite = document.getElementById('filterSite');
+    const ideaSiteTarget = document.getElementById('ideaSiteTarget');
+    epsilonSites.forEach(s => {
+        const opt1 = document.createElement('option');
+        opt1.value = s.name;
+        opt1.textContent = s.name;
+        filterSite.appendChild(opt1);
+
+        const opt2 = document.createElement('option');
+        opt2.value = s.name;
+        opt2.textContent = s.name;
+        ideaSiteTarget.appendChild(opt2);
+    });
+}
+
+function openIdeaModal() {
+    if (!currentUser) { toast('Please sign in to submit an idea', 'error'); return; }
+    document.getElementById('ideaModal').classList.add('active');
+    document.getElementById('ideaTitle').value = '';
+    document.getElementById('ideaDescription').value = '';
+    document.getElementById('ideaRemove').value = '';
+    document.getElementById('ideaRating').value = 5;
+    document.getElementById('ideaCategory').value = 'Feature Request';
+    document.getElementById('ideaSiteTarget').value = 'Overall';
+    document.getElementById('ideaTitleCount').textContent = '0';
+    document.getElementById('ideaDescCount').textContent = '0';
+    document.getElementById('ideaRemoveCount').textContent = '0';
+    updateRatingPreview(5);
+}
+
+function closeIdeaModal() {
+    document.getElementById('ideaModal').classList.remove('active');
+}
+
+async function submitIdea() {
+    const title = document.getElementById('ideaTitle').value.trim();
+    const description = document.getElementById('ideaDescription').value.trim();
+    const siteTarget = document.getElementById('ideaSiteTarget').value;
+    const category = document.getElementById('ideaCategory').value;
+    const rating = parseInt(document.getElementById('ideaRating').value);
+    const whatToRemove = document.getElementById('ideaRemove').value.trim() || null;
+
+    if (title.length < 3) { toast('Title must be at least 3 characters', 'error'); return; }
+    if (description.length < 10) { toast('Description must be at least 10 characters', 'error'); return; }
+
+    const btn = document.getElementById('ideaSubmitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
+
+    const { data, error } = await supabaseClient.from('ideas').insert({
+        user_id: currentUser.id,
+        title,
+        description,
+        site_target: siteTarget,
+        category,
+        helpfulness_rating: rating,
+        what_to_remove: whatToRemove
+    }).select().single();
+
+    btn.disabled = false;
+    btn.textContent = 'Submit Idea';
+
+    if (error) {
+        toast('Failed to submit: ' + error.message, 'error');
+        console.error(error);
+        return;
+    }
+
+    closeIdeaModal();
+    toast('Idea submitted successfully!', 'success');
+    loadIdeas();
+}
+
+async function loadIdeas() {
+    const feed = document.getElementById('ideasFeed');
+    feed.innerHTML = '<div style="text-align:center;padding:3rem;color:#52525b"><div style="width:32px;height:32px;border:3px solid rgba(139,92,246,.15);border-top-color:#8b5cf6;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto .75rem"></div><style>@keyframes spin{to{transform:rotate(360deg)}}</style>Loading ideas...</div>';
+
+    let query = supabaseClient.from('ideas').select('*, profiles:user_id(id, username, display_name, profile_pic)');
+
+    // Apply filters
+    const siteFilter = document.getElementById('filterSite').value;
+    const catFilter = document.getElementById('filterCategory').value;
+    const statusFilter = document.getElementById('filterStatus').value;
+    const sortVal = document.getElementById('filterSort').value;
+    const searchVal = document.getElementById('ideaSearch').value.trim();
+
+    if (siteFilter !== 'All') query = query.eq('site_target', siteFilter);
+    if (catFilter !== 'All') query = query.eq('category', catFilter);
+    if (statusFilter !== 'All') query = query.eq('status', statusFilter);
+    if (searchVal) query = query.or(`title.ilike.%${searchVal}%,description.ilike.%${searchVal}%`);
+
+    // Sorting
+    switch (sortVal) {
+        case 'most_liked': query = query.order('likes', { ascending: false }); break;
+        case 'most_discussed': query = query.order('reply_count', { ascending: false }); break;
+        case 'highest_rated': query = query.order('helpfulness_rating', { ascending: false }); break;
+        default: query = query.order('created_at', { ascending: false });
+    }
+
+    const { data: ideas, error } = await query;
+
+    if (error) {
+        feed.innerHTML = '<div style="text-align:center;padding:2rem;color:#f87171">Failed to load ideas: ' + error.message + '</div>';
+        console.error(error);
+        return;
+    }
+
+    // Update stats
+    const allIdeas = ideas || [];
+    document.getElementById('statTotal').textContent = allIdeas.length;
+    document.getElementById('statImplemented').textContent = allIdeas.filter(i => i.status === 'implemented').length;
+    document.getElementById('statLikes').textContent = allIdeas.reduce((s, i) => s + (i.likes || 0), 0);
+
+    if (!ideas || ideas.length === 0) {
+        feed.innerHTML = '<div style="text-align:center;padding:3rem;color:#52525b"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto .75rem;opacity:.4"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg><p>No ideas found</p><p style="font-size:.75rem;margin-top:.3rem">Be the first to contribute!</p></div>';
+        return;
+    }
+
+    // Find max likes for trending badge
+    const maxLikes = Math.max(...ideas.map(i => i.likes || 0), 1);
+
+    feed.innerHTML = ideas.map(idea => {
+        const p = idea.profiles || {};
+        const isLiked = idea.liked_by && Array.isArray(idea.liked_by) && idea.liked_by.includes(currentUser?.id);
+        const isTrending = idea.likes >= maxLikes * 0.7 && idea.likes > 0;
+        const ratingPercent = ((idea.helpfulness_rating || 5) / 10) * 100;
+        const ratingColor = idea.helpfulness_rating >= 8 ? '#4ade80' : idea.helpfulness_rating >= 5 ? '#a78bfa' : '#fbbf24';
+        const timeAgo = getTimeAgo(idea.created_at);
+
+        return `
+        <div class="idea-card" onclick="openIdeaDetail('${idea.id}')">
+            <div style="display:flex;align-items:flex-start;gap:.85rem">
+                <div class="avatar avatar-sm" style="margin-top:2px">${p.profile_pic ? `<img src="${p.profile_pic}" onerror="this.parentElement.textContent='${(p.display_name || 'U')[0].toUpperCase()}'">` : (p.display_name || 'U')[0].toUpperCase()}</div>
+                <div style="flex:1;min-width:0">
+                    <div style="display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;margin-bottom:.35rem">
+                        <span style="font-size:.8rem;font-weight:600;color:#e4e4e7">${escHtml(p.display_name || 'Unknown')}</span>
+                        <span style="font-size:.7rem;color:#52525b">@${escHtml(p.username || 'user')}</span>
+                        <span style="font-size:.65rem;color:#3f3f46">· ${timeAgo}</span>
+                        ${isTrending ? '<span class="trending-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Trending</span>' : ''}
+                    </div>
+                    <h4 style="font-size:.95rem;font-weight:700;color:#e4e4e7;margin-bottom:.4rem;line-height:1.35">${escHtml(idea.title)}</h4>
+                    <p style="font-size:.8rem;color:#71717a;line-height:1.55;margin-bottom:.7rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${escHtml(idea.description)}</p>
+                    <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+                        <span class="idea-status status-${idea.status}">${idea.status.replace('_', ' ')}</span>
+                        <span class="tag">${escHtml(idea.category)}</span>
+                        <span class="tag" style="background:rgba(96,165,250,.08);color:#60a5fa;border-color:rgba(96,165,250,.12)">${escHtml(idea.site_target)}</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:1rem;margin-top:.75rem">
+                        <button class="like-btn ${isLiked ? 'liked' : ''}" onclick="event.stopPropagation();toggleIdeaLike('${idea.id}', ${isLiked})">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="${isLiked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></svg>
+                            ${idea.likes || 0}
+                        </button>
+                        <span style="font-size:.75rem;color:#52525b;display:flex;align-items:center;gap:.25rem">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            ${idea.reply_count || 0}
+                        </span>
+                        <span style="font-size:.75rem;color:#52525b;display:flex;align-items:center;gap:.25rem">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                            ${idea.views || 0}
+                        </span>
+                        <div style="margin-left:auto;display:flex;align-items:center;gap:.35rem">
+                            <div class="rating-bar-track"><div class="rating-bar-fill" style="width:${ratingPercent}%;background:${ratingColor}"></div></div>
+                            <span style="font-size:.72rem;font-weight:700;color:${ratingColor}">${idea.helpfulness_rating}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+async function toggleIdeaLike(ideaId, currentlyLiked) {
+    if (!currentUser) { toast('Please sign in to like ideas', 'error'); return; }
+
+    if (currentlyLiked) {
+        // Unlike: remove user from array, decrement likes
+        const { data: idea } = await supabaseClient.from('ideas').select('likes, liked_by').eq('id', ideaId).single();
+        if (!idea) return;
+        const newLikedBy = (idea.liked_by || []).filter(uid => uid !== currentUser.id);
+        const { error } = await supabaseClient.from('ideas').update({
+            likes: Math.max(0, (idea.likes || 1) - 1),
+            liked_by: newLikedBy
+        }).eq('id', ideaId);
+        if (error) console.error(error);
+    } else {
+        // Like: add user to array, increment likes
+        const { data: idea } = await supabaseClient.from('ideas').select('likes, liked_by').eq('id', ideaId).single();
+        if (!idea) return;
+        const newLikedBy = [...(idea.liked_by || []), currentUser.id];
+        const { error } = await supabaseClient.from('ideas').update({
+            likes: (idea.likes || 0) + 1,
+            liked_by: newLikedBy
+        }).eq('id', ideaId);
+        if (error) console.error(error);
+    }
+    loadIdeas();
+}
+
+async function openIdeaDetail(ideaId) {
+    currentIdeaDetailId = ideaId;
+
+    // Increment views
+    await supabaseClient.rpc('increment_views', { idea_id_input: ideaId }).catch(() => {
+        // Fallback if RPC doesn't exist — do manual increment
+        supabaseClient.from('ideas').select('views').eq('id', ideaId).single().then(({ data }) => {
+            if (data) supabaseClient.from('ideas').update({ views: (data.views || 0) + 1 }).eq('id', ideaId);
+        });
+    });
+
+    const { data: idea, error } = await supabaseClient
+        .from('ideas')
+        .select('*, profiles:user_id(id, username, display_name, profile_pic)')
+        .eq('id', ideaId)
+        .single();
+
+    if (error || !idea) {
+        toast('Failed to load idea details', 'error');
+        return;
+    }
+
+    const p = idea.profiles || {};
+    const isLiked = idea.liked_by && Array.isArray(idea.liked_by) && idea.liked_by.includes(currentUser?.id);
+    const ratingPercent = ((idea.helpfulness_rating || 5) / 10) * 100;
+    const ratingColor = idea.helpfulness_rating >= 8 ? '#4ade80' : idea.helpfulness_rating >= 5 ? '#a78bfa' : '#fbbf24';
+
+    document.getElementById('ideaDetailContent').innerHTML = `
+        <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.85rem;flex-wrap:wrap">
+            <span class="idea-status status-${idea.status}">${idea.status.replace('_', ' ')}</span>
+            <span class="tag">${escHtml(idea.category)}</span>
+            <span class="tag" style="background:rgba(96,165,250,.08);color:#60a5fa;border-color:rgba(96,165,250,.12)">${escHtml(idea.site_target)}</span>
+        </div>
+        <h3 style="font-size:1.2rem;font-weight:800;color:#e4e4e7;margin-bottom:.65rem;line-height:1.3">${escHtml(idea.title)}</h3>
+        <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem">
+            <div class="avatar avatar-sm">${p.profile_pic ? `<img src="${p.profile_pic}" onerror="this.parentElement.textContent='${(p.display_name || 'U')[0].toUpperCase()}'">` : (p.display_name || 'U')[0].toUpperCase()}</div>
+            <div>
+                <span style="font-size:.82rem;font-weight:600;color:#e4e4e7">${escHtml(p.display_name || 'Unknown')}</span>
+                <span style="font-size:.72rem;color:#52525b"> · @${escHtml(p.username || 'user')} · ${getTimeAgo(idea.created_at)}</span>
+            </div>
+        </div>
+        <div style="font-size:.88rem;color:#a1a1aa;line-height:1.7;white-space:pre-wrap;margin-bottom:1rem">${escHtml(idea.description)}</div>
+        ${idea.what_to_remove ? `<div class="remove-box" style="margin-bottom:1rem"><div style="font-size:.72rem;font-weight:700;color:#f87171;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.35rem">Suggested Removal</div><p style="font-size:.82rem;color:#a1a1aa;line-height:1.6;white-space:pre-wrap">${escHtml(idea.what_to_remove)}</p></div>` : ''}
+        <div style="display:flex;align-items:center;gap:1rem;padding:.75rem 0;border-top:1px solid rgba(139,92,246,.08);border-bottom:1px solid rgba(139,92,246,.08)">
+            <button class="like-btn ${isLiked ? 'liked' : ''}" onclick="toggleIdeaLike('${idea.id}', ${isLiked})">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="${isLiked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></svg>
+                ${idea.likes || 0}
+            </button>
+            <span style="font-size:.78rem;color:#52525b"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:.2rem"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>${idea.views || 0} views</span>
+            <div style="margin-left:auto;display:flex;align-items:center;gap:.4rem">
+                <span style="font-size:.72rem;color:#52525b">Helpfulness</span>
+                <div class="rating-bar-track" style="width:80px"><div class="rating-bar-fill" style="width:${ratingPercent}%;background:${ratingColor}"></div></div>
+                <span style="font-size:.85rem;font-weight:800;color:${ratingColor}">${idea.helpfulness_rating}<span style="font-size:.7rem;font-weight:500;color:#52525b">/10</span></span>
+            </div>
+        </div>
+    `;
+
+    // Load replies
+    loadIdeaReplies(ideaId);
+    document.getElementById('ideaDetailModal').classList.add('active');
+}
+
+function closeIdeaDetail() {
+    document.getElementById('ideaDetailModal').classList.remove('active');
+    currentIdeaDetailId = null;
+    loadIdeas(); // Refresh to show updated views
+}
+
+async function loadIdeaReplies(ideaId) {
+    const list = document.getElementById('ideaRepliesList');
+    const heading = document.getElementById('repliesHeading');
+    list.innerHTML = '<div style="text-align:center;padding:1.5rem;color:#52525b;font-size:.82rem">Loading replies...</div>';
+
+    const { data: replies, error } = await supabaseClient
+        .from('idea_replies')
+        .select('*, profiles:user_id(id, username, display_name, profile_pic)')
+        .eq('idea_id', ideaId)
+        .order('created_at', { ascending: true });
+
+    if (error) {
+        list.innerHTML = '<div style="color:#f87171;font-size:.82rem">Failed to load replies</div>';
+        return;
+    }
+
+    heading.textContent = `Replies (${(replies || []).length})`;
+
+    if (!replies || replies.length === 0) {
+        list.innerHTML = '<div style="text-align:center;padding:1.5rem;color:#3f3f46;font-size:.82rem">No replies yet. Be the first to respond!</div>';
+        return;
+    }
+
+    list.innerHTML = replies.map(r => {
+        const rp = r.profiles || {};
+        return `
+        <div class="reply-bubble">
+            <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">
+                <div class="avatar" style="width:26px;height:26px;font-size:.6rem">${rp.profile_pic ? `<img src="${rp.profile_pic}" onerror="this.parentElement.textContent='${(rp.display_name || 'U')[0].toUpperCase()}'">` : (rp.display_name || 'U')[0].toUpperCase()}</div>
+                <span style="font-size:.78rem;font-weight:600;color:#e4e4e7">${escHtml(rp.display_name || 'Unknown')}</span>
+                <span style="font-size:.68rem;color:#3f3f46">· ${getTimeAgo(r.created_at)}</span>
+            </div>
+            <p style="font-size:.83rem;color:#a1a1aa;line-height:1.55;white-space:pre-wrap;padding-left:2.15rem">${escHtml(r.content)}</p>
+        </div>`;
+    }).join('');
+}
+
+async function submitReply() {
+    if (!currentUser) { toast('Please sign in to reply', 'error'); return; }
+    if (!currentIdeaDetailId) return;
+
+    const input = document.getElementById('replyInput');
+    const content = input.value.trim();
+    if (content.length < 1) { toast('Reply cannot be empty', 'error'); return; }
+
+    const btn = document.getElementById('replySubmitBtn');
+    btn.disabled = true;
+
+    // Insert reply
+    const { error: replyErr } = await supabaseClient.from('idea_replies').insert({
+        idea_id: currentIdeaDetailId,
+        user_id: currentUser.id,
+        content
+    });
+
+    if (replyErr) {
+        toast('Failed to post reply: ' + replyErr.message, 'error');
+        btn.disabled = false;
+        return;
+    }
+
+    // Increment reply_count on the idea
+    const { data: idea } = await supabaseClient.from('ideas').select('reply_count').eq('id', currentIdeaDetailId).single();
+    if (idea) {
+        await supabaseClient.from('ideas').update({ reply_count: (idea.reply_count || 0) + 1 }).eq('id', currentIdeaDetailId);
+    }
+
+    input.value = '';
+    btn.disabled = false;
+    loadIdeaReplies(currentIdeaDetailId);
+}
+
+// ===================== HELPERS =====================
+function escHtml(str) {
+    if (!str) return '';
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+}
+
+function getTimeAgo(dateStr) {
+    if (!dateStr) return '';
+    const now = new Date();
+    const d = new Date(dateStr);
+    const diff = Math.floor((now - d) / 1000);
+    if (diff < 60) return 'just now';
+    if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+    if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+    if (diff < 2592000) return Math.floor(diff / 86400) + 'd ago';
+    return d.toLocaleDateString();
+}
+
+// ===================== INIT IDEAS ON APP LOAD =====================
+// Call this when the app initializes (inside your auth state change handler)
+function initContributionsPage() {
+    populateSiteFilters();
+    loadIdeas();
+}
+  (function(){
+  /* ── Populate the "Which site" dropdowns from epsilonSites ── */
+  function hydrateSiteDropdowns(){
+    const targets = [
+      document.getElementById('filterSite'),
+      document.getElementById('ideaSiteTarget')
+    ];
+    targets.forEach(function(sel){
+      if(!sel || sel.options.length > 1) return;          // already populated
+      epsilonSites.forEach(function(s){
+        var o = document.createElement('option');
+        o.value = s.name;
+        o.textContent = s.name;
+        sel.appendChild(o);
+      });
+    });
+  }
+
+  /* ── Safe wrapper: calls loadIdeas only when it actually exists ── */
+  function tryLoadIdeas(){
+    if(typeof loadIdeas === 'function'){
+      hydrateSiteDropdowns();
+      loadIdeas();
+    } else {
+      /* loadIdeas not parsed yet – retry shortly */
+      setTimeout(tryLoadIdeas, 60);
+    }
+  }
+
+  /* ── 1. Patch goTo so every navigation to 'contributions' fetches ideas ── */
+  var _goTo = window.goTo;
+  window.goTo = function(page, param){
+    if(_goTo) _goTo(page, param);
+    if(page === 'contributions') tryLoadIdeas();
+  };
+
+  /* ── 2. MutationObserver fallback: catch any show/active toggle we miss ── */
+  var contribPage = document.getElementById('page-contributions');
+  if(contribPage){
+    var obs = new MutationObserver(function(mutations){
+      mutations.forEach(function(m){
+        if(m.type === 'attributes' && m.attributeName === 'class'){
+          if(contribPage.classList.contains('active')) tryLoadIdeas();
+        }
+      });
+    });
+    obs.observe(contribPage, { attributes: true });
+  }
+
+  /* ── 3. If the user lands directly on #contributions or it's already active ── */
+  if(contribPage && contribPage.classList.contains('active')){
+    tryLoadIdeas();
+  }
+
+  /* ── 4. Hash-change catch for direct-link / refresh scenarios ── */
+  window.addEventListener('hashchange', function(){
+    if(window.location.hash === '#contributions' ||
+       (contribPage && contribPage.classList.contains('active'))){
+      tryLoadIdeas();
+    }
+  });
+
+  /* ── 5. After auth resolves the app becomes visible — re-check ── */
+  var appEl = document.getElementById('app');
+  if(appEl){
+    var appObs = new MutationObserver(function(){
+      if(appEl.style.display !== 'none'){
+        if(contribPage && contribPage.classList.contains('active')) tryLoadIdeas();
+      }
+    });
+    appObs.observe(appEl, { attributes: true, attributeFilter: ['style'] });
+  }
+})();
+// ============ EPSILON TRAFFIC TRACKER ============
+// Put this on EVERY site. Change `cw` to the site name.
+// Must be placed AFTER the Supabase client is created as `supabaseClient`.
+
+var cw = "Epsilon Hub"; // <-- CHANGE THIS PER SITE
+
+(function(_cw) {
+  var _sid = null;
+  var _t0 = Date.now();
+
+  // Insert a session row
+  function _start(email, uid) {
+    if (_sid) return;
+    supabaseClient.from('site_sessions').insert({
+      user_id: uid || null,
+      email: email || null,
+      website: _cw,
+      user_agent: navigator.userAgent,
+      is_online: true
+    }).then(function(r) {
+      if (r.data && r.data.length) _sid = r.data[0].id;
+    });
+  }
+
+  // Update row with end time + duration
+  function _end() {
+    if (!_sid) return;
+    var dur = Math.round((Date.now() - _t0) / 1000);
+    supabaseClient.from('site_sessions').update({
+      ended_at: new Date().toISOString(),
+      duration_secs: dur,
+      is_online: false
+    }).eq('id', _sid).then(function() { _sid = null; });
+  }
+
+  // Heartbeat every 60s — confirms they're still online
+  function _heartbeat() {
+    if (!_sid) return;
+    supabaseClient.from('site_sessions').update({
+      is_online: true
+    }).eq('id', _sid);
+  }
+
+  // Listen for auth state changes to know who just signed in/up
+  supabaseClient.auth.onAuthStateChange(function(event, session) {
+    if (session && session.user) {
+      _start(session.user.email, session.user.id);
+    } else if (event === 'SIGNED_OUT') {
+      _end();
+    }
+  });
+
+  // If already logged in when page loads (persisted session), start immediately
+  (function _checkExisting() {
+    supabaseClient.auth.getSession().then(function(r) {
+      if (r.data && r.data.session && r.data.session.user) {
+        _start(r.data.session.user.email, r.data.session.user.id);
+      }
+    });
+  })();
+
+  // End session on tab close / navigate away / go invisible
+  window.addEventListener('beforeunload', _end);
+  document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'hidden') _end();
+    else if (document.visibilityState === 'visible') {
+      // Re-open session if user came back
+      supabaseClient.auth.getSession().then(function(r) {
+        if (r.data && r.data.session && r.data.session.user && !_sid) {
+          _t0 = Date.now();
+          _start(r.data.session.user.email, r.data.session.user.id);
+        }
+      });
+    }
+  });
+
+  setInterval(_heartbeat, 60000);
+
+})(cw);
+</script>
+<style>
+        /* --- Floating Button --- */
+        #epsilon-ai-btn {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            z-index: 9999;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            border: 1px solid rgba(168, 85, 247, 0.5);
+            background: rgba(13, 10, 25, 0.85);
+            backdrop-filter: blur(16px);
+            color: #c084fc;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 24px rgba(168, 85, 247, 0.35), 0 4px 16px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease, background 0.3s ease;
+        }
+
+        #epsilon-ai-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 36px rgba(168, 85, 247, 0.55), 0 6px 24px rgba(0, 0, 0, 0.6);
+            background: rgba(168, 85, 247, 0.25);
+        }
+
+        #epsilon-ai-btn:active {
+            transform: scale(0.95);
+        }
+
+        #epsilon-ai-btn svg {
+            width: 22px;
+            height: 22px;
+            pointer-events: none;
+        }
+
+        /* Pulse ring animation */
+        #epsilon-ai-btn::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 2px solid rgba(168, 85, 247, 0.4);
+            animation: ai-pulse 2.5s ease-out infinite;
+        }
+
+        @keyframes ai-pulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.7;
+            }
+
+            70% {
+                transform: scale(1.4);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1.4);
+                opacity: 0;
+            }
+        }
+
+        /* --- Modal Overlay --- */
+        #epsilon-ai-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: flex-end;
+            justify-content: flex-end;
+            padding: 1.5rem;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+
+        #epsilon-ai-overlay.open {
+            display: flex;
+            opacity: 1;
+        }
+
+        /* --- Chat Panel --- */
+        #epsilon-ai-panel {
+            width: 100%;
+            max-width: 400px;
+            max-height: 560px;
+            border-radius: 1.25rem;
+            background: rgba(13, 10, 25, 0.92);
+            backdrop-filter: blur(20px) saturate(150%);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.7), 0 0 40px rgba(168, 85, 247, 0.15);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transform: translateY(20px) scale(0.96);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #epsilon-ai-overlay.open #epsilon-ai-panel {
+            transform: translateY(0) scale(1);
+        }
+
+        /* Header */
+        .ai-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid rgba(168, 85, 247, 0.15);
+            flex-shrink: 0;
+        }
+
+        .ai-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+        }
+
+        .ai-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #a855f7;
+            box-shadow: 0 0 8px rgba(168, 85, 247, 0.6);
+            animation: ai-dot-glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes ai-dot-glow {
+            from {
+                box-shadow: 0 0 6px rgba(168, 85, 247, 0.4);
+            }
+
+            to {
+                box-shadow: 0 0 14px rgba(168, 85, 247, 0.8);
+            }
+        }
+
+        .ai-header h3 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            color: #f3e8ff;
+        }
+
+        .ai-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            background: transparent;
+            color: #c084fc;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .ai-close:hover {
+            background: rgba(168, 85, 247, 0.2);
+            color: #fff;
+        }
+
+        .ai-close svg {
+            width: 16px;
+            height: 16px;
+            pointer-events: none;
+        }
+
+        /* Messages Area */
+        .ai-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(168, 85, 247, 0.3) transparent;
+        }
+
+        .ai-messages::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .ai-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .ai-messages::-webkit-scrollbar-thumb {
+            background: rgba(168, 85, 247, 0.3);
+            border-radius: 4px;
+        }
+
+        .ai-msg {
+            max-width: 85%;
+            padding: 0.7rem 1rem;
+            border-radius: 1rem;
+            font-size: 0.85rem;
+            line-height: 1.55;
+            word-break: break-word;
+            animation: msg-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes msg-in {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .ai-msg.bot {
+            background-color: rgba(13, 10, 25, 0.92);
+            /* Light gray box background */
+            color: #ffffff;
+            /* Dark text color */
+            border: 1px rgba(13, 10, 25, 0.92);
+            /* Subtle box border */
+            border-radius: 12px;
+            /* Rounded corners for the bubble */
+            padding: 10px 14px;
+            /* Spacing inside the box */
+            margin: 8px 0;
+            /* Spacing between different messages */
+            max-width: 99%;
+            /* Stops the box from stretching too wide */
+            display: inline-block;
+            /* Keeps the box wrapped tight to content */
+            word-wrap: break-word;
+            /* Makes sure long words don't overflow */
+        }
+
+        .ai-msg.bot ul,
+        .ai-msg.bot ol {
+            margin: 5px 0;
+            padding-left: 20px;
+        }
+
+        .ai-msg.bot p {
+            margin: 4px 0;
+        }
+
+        .ai-msg.bot h1,
+        .ai-msg.bot h2,
+        .ai-msg.bot h3 {
+            margin: 6px 0;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        .ai-msg.user {
+            align-self: flex-end;
+            background: #a855f7;
+            color: #fff;
+            border-bottom-right-radius: 0.3rem;
+        }
+
+        .ai-msg.typing span {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #c084fc;
+            margin: 0 2px;
+            animation: typing-bounce 1.2s ease-in-out infinite;
+        }
+
+        .ai-msg.typing span:nth-child(2) {
+            animation-delay: 0.15s;
+        }
+
+        .ai-msg.typing span:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        @keyframes typing-bounce {
+
+            0%,
+            60%,
+            100% {
+                transform: translateY(0);
+                opacity: 0.4;
+            }
+
+            30% {
+                transform: translateY(-5px);
+                opacity: 1;
+            }
+        }
+
+        /* Input Area */
+        .ai-input-area {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.85rem 1.25rem;
+            border-top: 1px solid rgba(168, 85, 247, 0.15);
+            flex-shrink: 0;
+        }
+
+        .ai-input {
+            flex: 1;
+            background: rgba(168, 85, 247, 0.08);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: 0.75rem;
+            padding: 0.6rem 1rem;
+            color: #f3e8ff;
+            font-size: 0.85rem;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .ai-input::placeholder {
+            color: rgba(192, 132, 252, 0.4);
+        }
+
+        .ai-input:focus {
+            border-color: #a855f7;
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.25);
+        }
+
+        .ai-send {
+            width: 38px;
+            height: 38px;
+            border-radius: 0.75rem;
+            border: none;
+            background: #a855f7;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, transform 0.15s;
+            flex-shrink: 0;
+        }
+
+        .ai-send:hover {
+            background: #9333ea;
+        }
+
+        .ai-send:active {
+            transform: scale(0.92);
+        }
+
+        .ai-send:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .ai-send svg {
+            width: 16px;
+            height: 16px;
+            pointer-events: none;
+        }
+
+        /* Mobile adjustments */
+        @media (max-width: 480px) {
+            #epsilon-ai-overlay {
+                padding: 0.75rem;
+                align-items: flex-end;
+            }
+
+            #epsilon-ai-panel {
+                max-height: 75vh;
+                border-radius: 1.25rem 1.25rem 0 0;
+            }
+        }
+    </style>
+
+    <!-- Floating Button -->
+    <button id="epsilon-ai-btn" aria-label="Open AI Assistant">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z"></path>
+        </svg>
+    </button>
+
+    <!-- Chat Modal -->
+    <div id="epsilon-ai-overlay">
+        <div id="epsilon-ai-panel">
+            <div class="ai-header">
+                <div class="ai-header-left">
+                    <div class="ai-dot"></div>
+                    <h3>Epsilon AI</h3>
+                </div>
+                <button class="ai-close" id="epsilon-ai-close" aria-label="Close chat">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="ai-messages" id="ai-messages"></div>
+            <div class="ai-input-area">
+                <input type="text" class="ai-input" id="ai-input" placeholder="Ask me anything..." autocomplete="off">
+                <button class="ai-send" id="ai-send" aria-label="Send message">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            /* ====== CONFIGURATION ======
+             * Edit the systemMessage below to control what the AI knows and how it behaves.
+             * This is the ONLY thing you need to change to customize the assistant.
+             */
+            const systemMessage = `You are the Epsiai, built into the Epsilon Hub website with a purple and black theme. You are helpful, concise, and friendly. 
+
+You know about Epsilon's ecosystem of free and open-source apps:
+- Epsilon AI (basic ai that can make images, respond and code) | Theme: pink
+- Epsilon Azure (BMS, business to business marketplace) | Theme: blue
+- Epsilon Heckle (gaming library/website, game engine for children) | Theme: red
+- Epsilon Editz (editing tools, digital tools for artists and designers) | Theme: yellow
+- Epsilon Motor (automobile community for cars, planes, ships, trucks and bikes) | Theme: grey
+- Epsilon Neote (programming language, prototype js framework) | Theme: purple
+- Epsilon Sport (fitness tracker, sport lovers community) | Theme: orange
+- Epsilon Panel (web domain agency) | Theme: purple
+- Epsilon Basic (basic tools for kids/adults, library for 3d/2d designing tools for games, car interiors etc) | Theme: lightgray
+- Epsilon Learn (free learning platform) | Theme: green
+
+Client Projects:
+- NTK Services (movers/logistics)
+- Zerah (stationary/clothing)
+
+The Epsilon Team (Age bracket: 12-14 years old):
+- Warren Adrian (14 yrs old) - Owner. Built Epsilon on June 6, 2024, when he was 12.
+- Glenn Njoroge - Vital asset in training, responsible for Epsilon Panel.
+- Dylan Gikundi - Responsible for Epsilon Apple apps.
+- Ethan Gitimu - Responsible for Epsilon Android apps and Epsilon Learn.
+- Philip Hinga - Responsible for Epsilon Sport.
+- Victor Mwaura - Vital asset still in training.
+- Jaydon Kuria - Responsible for Epsilon Heckle.
+- Jayden Mwangi - Responsible for Epsilon Azure.
+- Casey Mwenda - Responsible for Epsilon Editz.
+- Jabali Mwaniki - Responsible for Epsilon Basic.
+
+Rules: Keep answers short and to the point. Always use clear examples and references to help the user understand. Format your responses beautifully using Markdown (bold text, lists, and headers where necessary). Do not make up information about features that don't exist or are not explicitly mentioned to you.`;
+
+            /* ====== DOM REFS ====== */
+            const btn = document.getElementById('epsilon-ai-btn');
+            const overlay = document.getElementById('epsilon-ai-overlay');
+            const closeBtn = document.getElementById('epsilon-ai-close');
+            const messages = document.getElementById('ai-messages');
+            const input = document.getElementById('ai-input');
+            const sendBtn = document.getElementById('ai-send');
+
+            let conversationHistory = [
+                { role: 'system', content: systemMessage }
+            ];
+            let isWaiting = false;
+
+            /* ====== OPEN / CLOSE ====== */
+            function openChat() {
+                overlay.classList.add('open');
+                // First open — show a greeting
+                if (conversationHistory.length === 1) {
+                    addBotMessage("Hey! I'm **Epsilon AI**. Ask me anything about the ecosystem.");
+                }
+                setTimeout(() => input.focus(), 300);
+            }
+
+            function closeChat() {
+                overlay.classList.remove('open');
+            }
+
+            btn.addEventListener('click', openChat);
+            closeBtn.addEventListener('click', closeChat);
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) closeChat();
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && overlay.classList.contains('open')) closeChat();
+            });
+
+            /* ====== MESSAGE RENDERING ====== */
+            function addBotMessage(markdownText) {
+                const div = document.createElement('div');
+                div.className = 'ai-msg bot';
+
+                // PARSE MARKDOWN TO HTML: Use marked.parse if library loaded, fallback to safe text if not
+                if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
+                    div.innerHTML = marked.parse(markdownText);
+                } else {
+                    div.textContent = markdownText;
+                }
+
+                messages.appendChild(div);
+                messages.scrollTop = messages.scrollHeight;
+            }
+
+            function addUserMessage(text) {
+                const div = document.createElement('div');
+                div.className = 'ai-msg user';
+                div.textContent = text;
+                messages.appendChild(div);
+                messages.scrollTop = messages.scrollHeight;
+            }
+
+            // Fix lists inside bot messages from ruining the layout spacing
+            const style = document.createElement('style');
+            style.innerHTML = `
+        .ai-msg.bot ul, .ai-msg.bot ol { margin: 5px 0; padding-left: 20px; }
+        .ai-msg.bot p { margin: 4px 0; }
+        .ai-msg.bot h1, .ai-msg.bot h2, .ai-msg.bot h3 { margin: 6px 0; font-size: 1.1em; }
+    `;
+            document.head.appendChild(style);
+
+            function showTyping() {
+                const div = document.createElement('div');
+                div.className = 'ai-msg bot typing';
+                div.id = 'ai-typing';
+                div.innerHTML = '<span></span><span></span><span></span>';
+                messages.appendChild(div);
+                messages.scrollTop = messages.scrollHeight;
+            }
+
+            function removeTyping() {
+                const el = document.getElementById('ai-typing');
+                if (el) el.remove();
+            }
+
+            /* ====== SEND MESSAGE ====== */
+            async function sendMessage() {
+                const text = input.value.trim();
+                if (!text || isWaiting) return;
+
+                isWaiting = true;
+                sendBtn.disabled = true;
+                input.value = '';
+
+                addUserMessage(text);
+                conversationHistory.push({ role: 'user', content: text });
+                showTyping();
+
+                try {
+                    // Format the history so the AI remembers context via the GET endpoint
+                    const promptContext = conversationHistory
+                        .map(msg => {
+                            if (msg.role === 'system') return `System instructions: ${msg.content}`;
+                            return `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`;
+                        })
+                        .join('\n');
+
+                    // Clean and encode the prompt for the URL
+                    const encodedPrompt = encodeURIComponent(promptContext + "\nAssistant:");
+
+                    // Correct Pollinations GET endpoint with no API key needed
+                    const res = await fetch(`https://text.pollinations.ai/${encodedPrompt}?model=openai&cache=false`);
+
+                    if (!res.ok) throw new Error(`API returned ${res.status}`);
+
+                    const replyText = await res.text();
+                    removeTyping();
+                    addBotMessage(replyText);
+                    conversationHistory.push({ role: 'assistant', content: replyText });
+
+                } catch (err) {
+                    removeTyping();
+                    addBotMessage("Something went wrong. Please try again.");
+                    console.error('Epsilon AI error:', err);
+                }
+
+                isWaiting = false;
+                sendBtn.disabled = false;
+                input.focus();
+            }
+
+            sendBtn.addEventListener('click', sendMessage);
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+        })();
+    </script>
+   <script>
+     if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then((reg) => console.log('SW registered:', reg.scope))
+      .catch((err) => console.warn('SW registration failed:', err));
+  });
+}
+   </script>
+</body>
+</html>
