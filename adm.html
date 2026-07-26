@@ -2131,6 +2131,25 @@ document.addEventListener('keydown', function(e) {
         closeVidPlayer();
     }
 });
+  (function() {
+    // Force load the videos once the DOM is ready so they are waiting for you
+    document.addEventListener('DOMContentLoaded', () => {
+        if (typeof loadVids === 'function') {
+            loadVids();
+        }
+    });
+
+    // Patching your go() function because you forgot to add 'vids' to the if/else chain
+    const originalGo = window.go;
+    if (typeof originalGo === 'function') {
+        window.go = function(page) {
+            originalGo(page);
+            if (page === 'vids' && typeof loadVids === 'function') {
+                loadVids();
+            }
+        };
+    }
+})();
 </script>
 </body>
 </html>
