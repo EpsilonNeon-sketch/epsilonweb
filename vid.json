@@ -1,0 +1,98 @@
+[
+  {
+    "id": 1,
+    "title": "JavaScript Fundamentals — Variables, Scope & Closures",
+    "description": "A deep dive into how JS handles variable scoping, closures, and the event loop. Essential foundation for any developer.",
+    "videoId": "PkZNo7MFNFg",
+    "category": "JavaScript",
+    "difficulty": "Beginner",
+    "duration": "18:24",
+    "thumbnail": "https://img.youtube.com/vi/PkZNo7MFNFg/maxresdefault.jpg",
+    "addedAt": "2025-06-20",
+    "tags": ["javascript", "basics", "closures"]
+  },
+  {
+    "id": 2,
+    "title": "CSS Grid Layout — Complete Guide",
+    "description": "Master CSS Grid from scratch. Learn grid-template-columns, grid-template-rows, gap, fr units, and responsive layouts without media queries.",
+    "videoId": "EiNiSFIPIQE",
+    "category": "CSS",
+    "difficulty": "Beginner",
+    "duration": "32:10",
+    "thumbnail": "https://img.youtube.com/vi/EiNiSFIPIQE/maxresdefault.jpg",
+    "addedAt": "2025-06-18",
+    "tags": ["css", "grid", "layout"]
+  },
+  {
+    "id": 3,
+    "title": "React Hooks Explained — useState, useEffect, useContext",
+    "description": "Understand the core React hooks, when and why to use each one, and common pitfalls that trip up developers.",
+    "videoId": "dpw9NHDVhSA",
+    "category": "React",
+    "difficulty": "Intermediate",
+    "duration": "25:47",
+    "thumbnail": "https://img.youtube.com/vi/dpw9NHDVhSA/maxresdefault.jpg",
+    "addedAt": "2025-06-15",
+    "tags": ["react", "hooks", "frontend"]
+  },
+  {
+    "id": 4,
+    "title": "Node.js REST API — From Zero to Deploy",
+    "description": "Build a production-ready REST API with Node.js, Express, and deploy it. Covers routing, middleware, error handling, and env config.",
+    "videoId": "fgTGADljAMg",
+    "category": "Node.js",
+    "difficulty": "Intermediate",
+    "duration": "45:30",
+    "thumbnail": "https://img.youtube.com/vi/fgTGADljAMg/maxresdefault.jpg",
+    "addedAt": "2025-06-12",
+    "tags": ["nodejs", "api", "backend"]
+  },
+  {
+    "id": 5,
+    "title": "SQL for Developers — Joins, Subqueries, Optimization",
+    "description": "Go beyond basic SELECT statements. Learn complex joins, window functions, CTEs, and query optimization techniques.",
+    "videoId": "HXV3zeQKqGY",
+    "category": "SQL",
+    "difficulty": "Intermediate",
+    "duration": "38:15",
+    "thumbnail": "https://img.youtube.com/vi/HXV3zeQKqGY/maxresdefault.jpg",
+    "addedAt": "2025-06-10",
+    "tags": ["sql", "database", "optimization"]
+  },
+  {
+    "id": 6,
+    "title": "TypeScript Advanced Types — Generics, Utility Types, Mapped Types",
+    "description": "Level up your TypeScript with generics, conditional types, mapped types, and built-in utility types like Partial, Pick, and Omit.",
+    "videoId": "nViEqmPa4M4",
+    "category": "TypeScript",
+    "difficulty": "Advanced",
+    "duration": "28:55",
+    "thumbnail": "https://img.youtube.com/vi/nViEqmPa4M4/maxresdefault.jpg",
+    "addedAt": "2025-06-08",
+    "tags": ["typescript", "types", "advanced"]
+  },
+  {
+    "id": 7,
+    "title": "Git & GitHub — Branching Strategies for Teams",
+    "description": "Learn Git Flow, trunk-based development, and how to structure branches for collaborative projects. Includes merge conflict resolution.",
+    "videoId": "4iQelLcT5os",
+    "category": "Git",
+    "difficulty": "Beginner",
+    "duration": "22:00",
+    "thumbnail": "https://img.youtube.com/vi/4iQelLcT5os/maxresdefault.jpg",
+    "addedAt": "2025-06-05",
+    "tags": ["git", "github", "workflow"]
+  },
+  {
+    "id": 8,
+    "title": "Supabase Auth & RLS — Secure Your App",
+    "description": "Implement authentication and Row Level Security policies in Supabase. Covers JWT tokens, RLS rules, and protecting your data layer.",
+    "videoId": "7uKQBl9uZ00",
+    "category": "Supabase",
+    "difficulty": "Intermediate",
+    "duration": "35:20",
+    "thumbnail": "https://img.youtube.com/vi/7uKQBl9uZ00/maxresdefault.jpg",
+    "addedAt": "2025-06-02",
+    "tags": ["supabase", "auth", "security"]
+  }
+]
