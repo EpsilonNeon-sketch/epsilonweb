@@ -208,12 +208,13 @@ textarea.input-field{resize:vertical;min-height:80px}
 <form id="formUp" onsubmit="signUp(event)" style="padding:1.75rem;display:none;flex-direction:column;gap:.65rem">
 <div>
 <label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Username <span style="color:#f87171">*</span></label>
-<input type="text" class="input-field" id="suUser" placeholder="cool_username" required minlength="3" pattern="[a-zA-Z0-9_]+">
-<p class="field-hint">Letters, numbers, underscores only. 3+ characters.</p>
+<input type="text" class="input-field" id="suUser" placeholder="coolusername" required minlength="3" pattern="[a-zA-Z0-9_]+">
+<p class="field-hint">Use 3+ letters or numbers; underscores are optional.</p>
 </div>
 <div>
 <label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Display Name <span style="color:#f87171">*</span></label>
 <input type="text" class="input-field" id="suName" placeholder="John Doe" required>
+<p class="field-hint">Spaces and underscores are both fine; neither is required.</p>
 </div>
 <div>
 <label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Email <span style="color:#f87171">*</span></label>
@@ -373,7 +374,7 @@ textarea.input-field{resize:vertical;min-height:80px}
 <h3 style="font-size:1rem;font-weight:700;color:#e4e4e7;margin-bottom:1rem">Profile Information</h3>
 <div style="display:flex;flex-direction:column;gap:.75rem">
 <div><label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Display Name</label><input type="text" class="input-field" id="setDisplayName" placeholder="Your name"></div>
-<div><label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Username</label><input type="text" class="input-field" id="setUsername" placeholder="@username" pattern="[a-zA-Z0-9_]+"><p style="font-size:.68rem;color:#52525b;margin-top:.2rem">Changing your username will update your profile URL</p></div>
+<div><label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Username</label><input type="text" class="input-field" id="setUsername" placeholder="username" pattern="[a-zA-Z0-9_]+"><p style="font-size:.68rem;color:#52525b;margin-top:.2rem">Letters and numbers work on their own; underscores are optional. Changing your username updates your profile URL.</p></div>
 <div><label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Bio</label><textarea class="input-field" id="setBio" placeholder="Tell us about yourself..." style="min-height:80px"></textarea></div>
 <div><label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Location</label><input type="text" class="input-field" id="setLocation" placeholder="City, Country"></div>
 <div><label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Website</label><input type="url" class="input-field" id="setWebsite" placeholder="https://yoursite.com"></div>
@@ -1988,6 +1989,9 @@ var cw = "Epsilon Hub"; // <-- CHANGE THIS PER SITE
 })(cw);
 </script>
 <style>
+        /* Assistant UI removed from the page. */
+        #epsilon-ai-btn, #epsilon-ai-overlay { display: none !important; }
+
         /* --- Floating Button --- */
         #epsilon-ai-btn {
             position: fixed;
