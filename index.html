@@ -14,69 +14,6 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
-/* ============ CLUBS PAGE ============ */
-.clubs-hero{background:linear-gradient(135deg,rgba(124,58,237,.14),rgba(167,139,250,.06));border:1px solid rgba(139,92,246,.12);border-radius:1.15rem;padding:2rem 2.25rem;position:relative;overflow:hidden;margin-bottom:2rem}
-.clubs-hero::before{content:'';position:absolute;top:-50px;right:-50px;width:200px;height:200px;border-radius:50%;background:rgba(139,92,246,.06);pointer-events:none}
-.clubs-hero::after{content:'';position:absolute;bottom:-30px;left:20%;width:140px;height:140px;border-radius:50%;background:rgba(167,139,250,.04);pointer-events:none}
-.club-card{background:rgba(20,20,30,.7);border:1px solid rgba(139,92,246,.1);border-radius:1rem;overflow:hidden;transition:all .35s cubic-bezier(.4,0,.2,1);cursor:pointer;position:relative}
-.club-card:hover{border-color:rgba(139,92,246,.28);transform:translateY(-4px);box-shadow:0 16px 48px rgba(139,92,246,.1)}
-.club-card:hover .club-card-img{transform:scale(1.06)}
-.club-card-img-wrap{position:relative;height:160px;overflow:hidden}
-.club-card-img{width:100%;height:100%;object-fit:cover;transition:transform .5s cubic-bezier(.4,0,.2,1)}
-.club-card-img-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(9,9,11,.85) 0%,rgba(9,9,11,.15) 60%,transparent 100%);pointer-events:none}
-.club-card-badge{position:absolute;top:.75rem;right:.75rem;display:inline-flex;align-items:center;gap:.3rem;padding:.22rem .6rem;border-radius:9999px;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1)}
-.badge-active{background:rgba(74,222,128,.15);color:#4ade80}
-.badge-coming-soon{background:rgba(251,191,36,.15);color:#fbbf24}
-.badge-new{background:rgba(96,165,250,.15);color:#60a5fa}
-.club-card-body{padding:1.1rem 1.25rem 1.25rem;position:relative;margin-top:-2.5rem;z-index:2}
-.club-card-icon{width:44px;height:44px;border-radius:.7rem;display:flex;align-items:center;justify-content:center;margin-bottom:.65rem;border:2px solid rgba(9,9,11,.8);box-shadow:0 4px 12px rgba(0,0,0,.3)}
-.club-card-title{font-size:1.05rem;font-weight:700;color:#e4e4e7;margin-bottom:.3rem;line-height:1.3}
-.club-card-desc{font-size:.78rem;color:#71717a;line-height:1.55;margin-bottom:.75rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.club-card-meta{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.4rem}
-.club-members{display:flex;align-items:center;gap:.35rem;font-size:.72rem;color:#52525b;font-weight:500}
-.club-members strong{color:#a1a1aa;font-weight:700}
-.club-member-avatars{display:flex}
-.club-member-avatar{width:22px;height:22px;border-radius:50%;border:2px solid rgba(9,9,11,.9);margin-left:-6px;object-fit:cover}
-.club-member-avatar:first-child{margin-left:0}
-.club-member-avatar-placeholder{width:22px;height:22px;border-radius:50%;border:2px solid rgba(9,9,11,.9);margin-left:-6px;display:flex;align-items:center;justify-content:center;font-size:.5rem;font-weight:700;color:#fff}
-.club-member-avatar-placeholder:first-child{margin-left:0}
-.club-tag{display:inline-flex;align-items:center;padding:.15rem .5rem;border-radius:9999px;font-size:.62rem;font-weight:600;border:1px solid;transition:all .2s}
-.club-filter-btn{padding:.42rem .85rem;border-radius:9999px;font-size:.76rem;font-weight:600;border:1.5px solid rgba(139,92,246,.12);background:transparent;color:#52525b;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif;white-space:nowrap}
-.club-filter-btn:hover{border-color:rgba(139,92,246,.25);color:#a1a1aa}
-.club-filter-btn.active-filter{background:linear-gradient(135deg,rgba(139,92,246,.18),rgba(124,58,237,.12));border-color:rgba(139,92,246,.3);color:#c4b5fd}
-.club-detail-modal-body{padding:1.75rem}
-.club-detail-header{display:flex;gap:1.25rem;align-items:flex-start;margin-bottom:1.5rem}
-.club-detail-icon{width:64px;height:64px;border-radius:1rem;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.club-detail-info{flex:1;min-width:0}
-.club-detail-title{font-size:1.3rem;font-weight:800;color:#e4e4e7;margin-bottom:.2rem}
-.club-detail-desc{font-size:.85rem;color:#71717a;line-height:1.6}
-.club-detail-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:1.5rem}
-.club-stat-box{background:rgba(15,15,25,.6);border:1px solid rgba(139,92,246,.08);border-radius:.75rem;padding:.85rem .75rem;text-align:center}
-.club-stat-value{font-size:1.2rem;font-weight:800;color:#c4b5fd}
-.club-stat-label{font-size:.65rem;color:#52525b;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-top:.15rem}
-.club-detail-section{margin-bottom:1.35rem}
-.club-detail-section-title{font-size:.82rem;font-weight:700;color:#71717a;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.65rem}
-.club-activity-item{display:flex;align-items:flex-start;gap:.65rem;padding:.6rem 0;border-bottom:1px solid rgba(139,92,246,.05)}
-.club-activity-item:last-child{border-bottom:none}
-.club-activity-dot{width:8px;height:8px;border-radius:50%;margin-top:.35rem;flex-shrink:0}
-.club-activity-text{font-size:.8rem;color:#a1a1aa;line-height:1.5}
-.club-activity-time{font-size:.65rem;color:#3f3f46;margin-top:.1rem}
-.club-join-btn{width:100%;justify-content:center;padding:.75rem;border-radius:.7rem;font-size:.88rem;font-weight:700}
-.club-joined-btn{width:100%;justify-content:center;padding:.75rem;border-radius:.7rem;font-size:.88rem;font-weight:700;background:rgba(139,92,246,.1)!important;border:1.5px solid rgba(139,92,246,.2)!important;color:#a78bfa!important;cursor:default}
-.clubs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.15rem}
-.club-search-wrap{position:relative;max-width:380px}
-.club-search-wrap svg{position:absolute;left:.85rem;top:50%;transform:translateY(-50%);color:#52525b;pointer-events:none}
-.club-search-input{padding-left:2.5rem}
-.club-empty{grid-column:1/-1;text-align:center;padding:3rem 1rem}
-.club-empty-icon{font-size:2.5rem;margin-bottom:.75rem;opacity:.3}
-.club-empty-text{font-size:.9rem;color:#52525b;font-weight:500}
-.club-empty-sub{font-size:.78rem;color:#3f3f46;margin-top:.25rem}
-@media(max-width:768px){
-  .clubs-grid{grid-template-columns:1fr}
-  .club-detail-header{flex-direction:column;align-items:center;text-align:center}
-  .club-detail-stats{grid-template-columns:repeat(3,1fr);gap:.5rem}
-  .club-card-img-wrap{height:130px}
-}
 /* ============ CONTRIBUTIONS PAGE ============ */
 .rating-bar-track{width:60px;height:6px;border-radius:3px;background:rgba(255,255,255,.05);overflow:hidden;flex-shrink:0}
 .rating-bar-fill{height:100%;border-radius:3px;transition:width .3s}
@@ -324,7 +261,6 @@ textarea.input-field{resize:vertical;min-height:80px}
 <button class="nav-btn active-nav" onclick="goTo('home')" data-nav="home"><i data-lucide="layout-grid" style="width:17px;height:17px"></i>Home</button>
 <button class="nav-btn" onclick="goTo('posts')" data-nav="posts"><i data-lucide="message-square" style="width:17px;height:17px"></i>Posts</button>
 <button class="nav-btn" onclick="goTo('contributions')" data-nav="contributions"><i data-lucide="lightbulb" style="width:17px;height:17px"></i>Contributions</button>
-<button class="nav-btn" onclick="goTo('clubs')" data-nav="clubs"><i data-lucide="flag" style="width:17px;height:17px"></i>Clubs</button>
 <button class="nav-btn" onclick="goTo('users')" data-nav="users"><i data-lucide="users" style="width:17px;height:17px"></i>Users</button>
 <button class="nav-btn" onclick="goTo('settings')" data-nav="settings"><i data-lucide="settings" style="width:17px;height:17px"></i>Settings</button>
 <div class="divider" style="margin:.5rem 1rem"></div>
@@ -350,28 +286,6 @@ textarea.input-field{resize:vertical;min-height:80px}
 </div>
 <h2 style="font-size:1.2rem;font-weight:700;color:#e4e4e7;margin-bottom:1.25rem">Epsilon Sites</h2>
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.15rem" id="sitesGrid"></div>
-</div>
-
-<!-- CLUBS PAGE -->
-<div class="page" id="page-clubs">
-  <div class="clubs-hero">
-    <h1 style="font-size:1.5rem;font-weight:800;color:#e4e4e7;margin-bottom:.35rem;position:relative">Epsilon <span style="background:linear-gradient(135deg,#a78bfa,#c4b5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Clubs</span></h1>
-    <p style="font-size:.85rem;color:#71717a;max-width:540px;position:relative;line-height:1.6">Join specialized communities within Epsilon. Each club focuses on a unique aspect of our ecosystem — from coding to cars, from AI to art.</p>
-  </div>
-
-  <!-- Search + Filters -->
-  <div style="display:flex;gap:.75rem;margin-bottom:1.25rem;flex-wrap:wrap;align-items:center">
-    <div class="club-search-wrap" style="flex:1;min-width:200px">
-      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input type="text" class="input-field club-search-input" id="clubSearch" placeholder="Search clubs..." oninput="filterClubs()">
-    </div>
-  </div>
-
-  <!-- Category Filter Pills -->
-  <div style="display:flex;gap:.4rem;margin-bottom:1.5rem;flex-wrap:wrap" id="clubFilters"></div>
-
-  <!-- Clubs Grid -->
-  <div class="clubs-grid" id="clubsGrid"></div>
 </div>
 
 <!-- POSTS PAGE -->
@@ -505,12 +419,6 @@ textarea.input-field{resize:vertical;min-height:80px}
 <button class="btn-primary" style="width:100%;justify-content:center;margin-top:.5rem" onclick="submitPost()" id="postSubmitBtn">Publish Post</button>
 </div>
 </div>
-</div>
-<!-- CLUB DETAIL MODAL -->
-<div class="modal-overlay" id="clubDetailModal">
-  <div class="modal-box" style="padding:0;max-width:580px;max-height:88vh;overflow-y:auto">
-    <div class="club-detail-modal-body" id="clubDetailContent"></div>
-  </div>
 </div>
 <!-- SUBMIT IDEA MODAL -->
 <div class="modal-overlay" id="ideaModal">
@@ -996,7 +904,6 @@ function handleRoute() {
         case 'users': loadUsers(); break;
         case 'settings': loadSettings(); renderThemePicker(); break;
         case 'profile': if (currentUser) loadProfileById(currentUser.id); break;
-        case 'clubs': showPage('clubs'); renderClubFilters(); filterClubs(); break;
     }
 }
 
@@ -2863,291 +2770,7 @@ Rules: Keep answers short and to the point. Always use clear examples and refere
 })();
    </script>
    <script>
-    // ===================== CLUBS DATA =====================
-const epsilonClubs = [
-  {
-    id: 'gaming',
-    name: 'Epsilon Heckle',
-    desc: 'We are teh heckle community community of gamers and those who are dedicated to gaming',
-    longDesc: 'We are teh heckle community community of gamers and those who are dedicated to gaming',
-    img: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    icon: 'gamepad-2',
-    iconBg: 'linear-gradient(135deg,#ef4444,#f87171)',
-    iconColor: '#fff',
-    category: 'Gaming',
-    tags: ['Tournaments', 'Heckle', 'Esports'],
-    members: 5,
-    badge: 'active',
-    site: 'Epsilon Heckle',
-    activity: [
-      { text: 'Lets talk about games', time: '30m ago', color: '#ef4444' },
-      { text: 'Wanan build games?', time: '3h ago', color: '#f87171' },
-      { text: 'Warren just joined', time: '6h ago', color: '#fbbf24' },
-    ],
-    avatarColors: ['#ec4899','#8b5cf6','#22c55e','#f97316'],
-    url: 'https://heckle-club.vercel.app'
-  },
-  {
-  id: 'auto-club',
-  name: 'Auto Club',
-  desc: 'For car lovers and engineering enthusiasts who live and breathe motors, mechanics, and the art of the build',
-  longDesc: 'For car lovers and engineering enthusiasts who live and breathe motors, mechanics, and the art of the build',
-  img: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-  icon: 'car',
-  iconBg: 'linear-gradient(135deg,#374151,#6b7280)',
-  iconColor: '#fff',
-  category: 'Automotive',
-  tags: ['cars', 'engineering'],
-  members: 5,
-  badge: 'active',
-  site: 'Auto Club',
-  activity: [
-    { text: 'New engine swap thread posted', time: '30m ago', color: '#374151' },
-    { text: 'Anyone up for a garage session?', time: '3h ago', color: '#6b7280' },
-    { text: 'Marcus just joined', time: '6h ago', color: '#ca8a04' },
-  ],
-  avatarColors: ['#374151','#6b7280','#2563eb','#16a34a'],
-  url: 'https://auto-club.vercel.app'
-}
-];
-
-const clubCategories = ['All', 'Tech', 'Sports', 'Gaming', 'Creative', 'Automotive', 'Business', 'Education', 'Lifestyle'];
-let activeClubFilter = 'All';
-
-// ===================== CLUBS RENDERING =====================
-function getClubTagStyle(tag) {
-  const map = {
-    'Development': { bg: 'rgba(139,92,246,.1)', color: '#a78bfa', border: 'rgba(139,92,246,.15)' },
-    'Open Source': { bg: 'rgba(34,197,94,.1)', color: '#4ade80', border: 'rgba(34,197,94,.15)' },
-    'Neote': { bg: 'rgba(139,92,246,.1)', color: '#c4b5fd', border: 'rgba(139,92,246,.15)' },
-    'Live Scores': { bg: 'rgba(249,115,22,.1)', color: '#fb923c', border: 'rgba(249,115,22,.15)' },
-    'Predictions': { bg: 'rgba(234,179,8,.1)', color: '#facc15', border: 'rgba(234,179,8,.15)' },
-    'Community': { bg: 'rgba(96,165,250,.1)', color: '#60a5fa', border: 'rgba(96,165,250,.15)' },
-    'Tournaments': { bg: 'rgba(239,68,68,.1)', color: '#f87171', border: 'rgba(239,68,68,.15)' },
-    'Heckle': { bg: 'rgba(239,68,68,.1)', color: '#f87171', border: 'rgba(239,68,68,.15)' },
-    'Esports': { bg: 'rgba(249,115,22,.1)', color: '#fb923c', border: 'rgba(249,115,22,.15)' },
-    'UI/UX': { bg: 'rgba(236,72,153,.1)', color: '#f472b6', border: 'rgba(236,72,153,.15)' },
-    'Figma': { bg: 'rgba(236,72,153,.1)', color: '#f472b6', border: 'rgba(236,72,153,.15)' },
-    'Design System': { bg: 'rgba(167,139,250,.1)', color: '#c4b5fd', border: 'rgba(167,139,250,.15)' },
-    'Cars': { bg: 'rgba(161,161,170,.1)', color: '#a1a1aa', border: 'rgba(161,161,170,.15)' },
-    'Motor': { bg: 'rgba(113,113,122,.1)', color: '#a1a1aa', border: 'rgba(113,113,122,.15)' },
-    'Builds': { bg: 'rgba(249,115,22,.1)', color: '#fb923c', border: 'rgba(249,115,22,.15)' },
-    'AI': { bg: 'rgba(6,182,212,.1)', color: '#22d3ee', border: 'rgba(6,182,212,.15)' },
-    'Machine Learning': { bg: 'rgba(6,182,212,.1)', color: '#22d3ee', border: 'rgba(6,182,212,.15)' },
-    'Research': { bg: 'rgba(96,165,250,.1)', color: '#60a5fa', border: 'rgba(96,165,250,.15)' },
-    'ERP': { bg: 'rgba(59,130,246,.1)', color: '#60a5fa', border: 'rgba(59,130,246,.15)' },
-    'Azure': { bg: 'rgba(59,130,246,.1)', color: '#60a5fa', border: 'rgba(59,130,246,.15)' },
-    'Growth': { bg: 'rgba(34,197,94,.1)', color: '#4ade80', border: 'rgba(34,197,94,.15)' },
-    'Editing': { bg: 'rgba(234,179,8,.1)', color: '#facc15', border: 'rgba(234,179,8,.15)' },
-    'Editz': { bg: 'rgba(234,179,8,.1)', color: '#facc15', border: 'rgba(234,179,8,.15)' },
-    'Tutorials': { bg: 'rgba(34,197,94,.1)', color: '#4ade80', border: 'rgba(34,197,94,.15)' },
-    'Courses': { bg: 'rgba(34,197,94,.1)', color: '#4ade80', border: 'rgba(34,197,94,.15)' },
-    'Study Groups': { bg: 'rgba(96,165,250,.1)', color: '#60a5fa', border: 'rgba(96,165,250,.15)' },
-    'Tutoring': { bg: 'rgba(59,130,246,.1)', color: '#60a5fa', border: 'rgba(59,130,246,.15)' },
-    'Compiler': { bg: 'rgba(139,92,246,.1)', color: '#c4b5fd', border: 'rgba(139,92,246,.15)' },
-    'RFCs': { bg: 'rgba(167,139,250,.1)', color: '#c4b5fd', border: 'rgba(167,139,250,.15)' },
-    'Fitness': { bg: 'rgba(239,68,68,.1)', color: '#f87171', border: 'rgba(239,68,68,.15)' },
-    'Challenges': { bg: 'rgba(249,115,22,.1)', color: '#fb923c', border: 'rgba(249,115,22,.15)' },
-    'Wellness': { bg: 'rgba(34,197,94,.1)', color: '#4ade80', border: 'rgba(34,197,94,.15)' },
-    'Photography': { bg: 'rgba(167,139,250,.1)', color: '#c4b5fd', border: 'rgba(167,139,250,.15)' },
-    'Gallery': { bg: 'rgba(236,72,153,.1)', color: '#f472b6', border: 'rgba(236,72,153,.15)' },
-    'Critique': { bg: 'rgba(96,165,250,.1)', color: '#60a5fa', border: 'rgba(96,165,250,.15)' },
-    'Ecosystem': { bg: 'rgba(139,92,246,.1)', color: '#a78bfa', border: 'rgba(139,92,246,.15)' },
-  };
-  return map[tag] || { bg: 'rgba(139,92,246,.08)', color: '#a78bfa', border: 'rgba(139,92,246,.12)' };
-}
-
-function renderClubFilters() {
-  const wrap = document.getElementById('clubFilters');
-  wrap.innerHTML = clubCategories.map(cat =>
-    `<button class="club-filter-btn ${cat === activeClubFilter ? 'active-filter' : ''}" onclick="setClubFilter('${cat}')">${cat}</button>`
-  ).join('');
-}
-
-function setClubFilter(cat) {
-  activeClubFilter = cat;
-  renderClubFilters();
-  filterClubs();
-}
-
-function filterClubs() {
-  const query = (document.getElementById('clubSearch')?.value || '').toLowerCase().trim();
-  const grid = document.getElementById('clubsGrid');
-  const filtered = epsilonClubs.filter(c => {
-    const matchCat = activeClubFilter === 'All' || c.category === activeClubFilter;
-    const matchSearch = !query || c.name.toLowerCase().includes(query) || c.desc.toLowerCase().includes(query) || c.tags.some(t => t.toLowerCase().includes(query)) || c.site.toLowerCase().includes(query);
-    return matchCat && matchSearch;
-  });
-
-  if (filtered.length === 0) {
-    grid.innerHTML = `<div class="club-empty"><div class="club-empty-icon">🏕️</div><div class="club-empty-text">No clubs found</div><div class="club-empty-sub">Try a different search or category</div></div>`;
-    return;
-  }
-
-  grid.innerHTML = filtered.map(club => {
-    const badgeClass = club.badge === 'active' ? 'badge-active' : club.badge === 'coming-soon' ? 'badge-coming-soon' : 'badge-new';
-    const badgeLabel = club.badge === 'active' ? '● Active' : club.badge === 'coming-soon' ? '◈ Coming Soon' : '✦ New';
-    const memberAvatars = club.avatarColors.slice(0, 4).map((c, i) =>
-      `<div class="club-member-avatar-placeholder" style="background:${c}">${String.fromCharCode(65 + i)}</div>`
-    ).join('');
-    const extraMembers = club.members > 4 ? `<div class="club-member-avatar-placeholder" style="background:rgba(139,92,246,.3);font-size:.45rem">+${club.members - 4}</div>` : '';
-    const tagsHtml = club.tags.slice(0, 3).map(t => {
-      const s = getClubTagStyle(t);
-      return `<span class="club-tag" style="background:${s.bg};color:${s.color};border-color:${s.border}">${t}</span>`;
-    }).join('');
-
-    return `
-      <div class="club-card" onclick="openClubDetail('${club.id}')">
-        <div class="club-card-img-wrap">
-          <img class="club-card-img" src="${club.img}" alt="${club.name}" loading="lazy">
-          <div class="club-card-img-overlay"></div>
-          <span class="club-card-badge ${badgeClass}">${badgeLabel}</span>
-        </div>
-        <div class="club-card-body">
-          <div class="club-card-icon" style="background:${club.iconBg}">
-            <i data-lucide="${club.icon}" style="width:22px;height:22px;color:${club.iconColor}"></i>
-          </div>
-          <div class="club-card-title">${club.name}</div>
-          <div class="club-card-desc">${club.desc}</div>
-          <div style="display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.75rem">${tagsHtml}</div>
-          <div class="club-card-meta">
-            <div class="club-members">
-              <div class="club-member-avatars">${memberAvatars}${extraMembers}</div>
-              <strong>${club.members}</strong> members
-            </div>
-            <span style="font-size:.68rem;color:#3f3f46;font-weight:500">${club.site}</span>
-          </div>
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  // Re-init lucide icons for newly rendered cards
-  if (typeof lucide !== 'undefined') lucide.createIcons();
-}
-
-// ===================== CLUB DETAIL MODAL =====================
-function openClubDetail(clubId) {
-  const club = epsilonClubs.find(c => c.id === clubId);
-  if (!club) return;
-
-  const badgeClass = club.badge === 'active' ? 'badge-active' : club.badge === 'coming-soon' ? 'badge-coming-soon' : 'badge-new';
-  const badgeLabel = club.badge === 'active' ? '● Active' : club.badge === 'coming-soon' ? '◈ Coming Soon' : '✦ New';
-  const tagsHtml = club.tags.map(t => {
-    const s = getClubTagStyle(t);
-    return `<span class="club-tag" style="background:${s.bg};color:${s.color};border-color:${s.border}">${t}</span>`;
-  }).join(' ');
-  const activityHtml = club.activity.map(a => `
-    <div class="club-activity-item">
-      <div class="club-activity-dot" style="background:${a.color}"></div>
-      <div>
-        <div class="club-activity-text">${a.text}</div>
-        <div class="club-activity-time">${a.time}</div>
-      </div>
-    </div>
-  `).join('');
-
-  const isComingSoon = club.badge === 'coming-soon';
-  const joinBtnHtml = isComingSoon
-    ? `<button class="btn-outline club-joined-btn" disabled>Coming Soon</button>`
-    : `<button class="btn-primary club-join-btn" onclick="joinClub('${club.id}')">
-        <i data-lucide="plus" style="width:16px;height:16px"></i>Join Club
-      </button>`;
-
-  const siteLinkHtml = club.url
-    ? `<a href="${club.url}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:.35rem;font-size:.8rem;color:#a78bfa;text-decoration:none;font-weight:600;transition:color .2s" onmouseenter="this.style.color='#c4b5fd'" onmouseleave="this.style.color='#a78bfa'">
-        <i data-lucide="external-link" style="width:14px;height:14px"></i>Visit ${club.site}
-      </a>`
-    : `<span style="font-size:.8rem;color:#3f3f46">Connected to: ${club.site}</span>`;
-
-  document.getElementById('clubDetailContent').innerHTML = `
-    <div style="position:relative;height:180px;overflow:hidden;border-radius:1.15rem 1.15rem 0 0">
-      <img src="${club.img}" alt="${club.name}" style="width:100%;height:100%;object-fit:cover">
-      <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(14,14,22,.98) 10%,rgba(14,14,22,.4) 60%,transparent 100%)"></div>
-      <button onclick="closeClubDetail()" class="btn-ghost" style="position:absolute;top:.75rem;right:.75rem;padding:.35rem;background:rgba(0,0,0,.4);border-radius:.5rem;border:1px solid rgba(255,255,255,.08)"><i data-lucide="x" style="width:16px;height:16px;color:#e4e4e7"></i></button>
-      <span class="club-card-badge ${badgeClass}" style="position:absolute;top:.75rem;left:.75rem">${badgeLabel}</span>
-    </div>
-    <div style="padding:0 1.75rem 1.75rem;margin-top:-3rem;position:relative;z-index:2">
-      <div class="club-detail-header">
-        <div class="club-detail-icon" style="background:${club.iconBg};border:3px solid rgba(14,14,22,.9)">
-          <i data-lucide="${club.icon}" style="width:30px;height:30px;color:${club.iconColor}"></i>
-        </div>
-        <div class="club-detail-info">
-          <div class="club-detail-title">${club.name}</div>
-          <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">
-            ${siteLinkHtml}
-            <span style="color:#3f3f46">·</span>
-            <span style="font-size:.78rem;color:#52525b;font-weight:500">${club.category}</span>
-          </div>
-          <div style="display:flex;flex-wrap:wrap;gap:.3rem">${tagsHtml}</div>
-        </div>
-      </div>
-
-      <div class="club-detail-stats">
-        <div class="club-stat-box">
-          <div class="club-stat-value">${club.members}</div>
-          <div class="club-stat-label">Members</div>
-        </div>
-        <div class="club-stat-box">
-          <div class="club-stat-value">${club.activity.length}</div>
-          <div class="club-stat-label">Recent</div>
-        </div>
-        <div class="club-stat-box">
-          <div class="club-stat-value" style="font-size:.85rem;padding-top:.15rem">${club.site}</div>
-          <div class="club-stat-label">Linked Site</div>
-        </div>
-      </div>
-
-      <div class="club-detail-section">
-        <div class="club-detail-section-title">About</div>
-        <p style="font-size:.84rem;color:#a1a1aa;line-height:1.7">${club.longDesc}</p>
-      </div>
-
-      <div class="club-detail-section">
-        <div class="club-detail-section-title">Recent Activity</div>
-        ${activityHtml}
-      </div>
-
-      ${joinBtnHtml}
-    </div>
-  `;
-
-  document.getElementById('clubDetailModal').classList.add('active');
-  if (typeof lucide !== 'undefined') lucide.createIcons();
-}
-
-function closeClubDetail() {
-  document.getElementById('clubDetailModal').classList.remove('active');
-}
-
-function joinClub(clubId) {
-  const club = epsilonClubs.find(c => c.id === clubId);
-  if (!club) return;
-  toast(`You joined ${club.name}!`, 'success');
-  closeClubDetail();
-}
-
-// Close club detail on overlay click
-document.getElementById('clubDetailModal')?.addEventListener('click', function(e) {
-  if (e.target === this) closeClubDetail();
-});
-
-// ===================== INTEGRATION: goTo() =====================
-// Patch into your existing goTo function — add this case:
-// case 'clubs': showPage('clubs'); renderClubFilters(); filterClubs(); break;
-
-// If you can't patch goTo directly, add this watcher:
-const _origGoTo = typeof goTo === 'function' ? goTo : null;
-if (_origGoTo) {
-  window.goTo = function(page, param) {
-    _origGoTo(page, param);
-    if (page === 'clubs') {
-      renderClubFilters();
-      filterClubs();
-    }
-  };
-}
-     console.log("version 6.7")
+         console.log("version 6.7")
    </script>
 </body>
 </html>
