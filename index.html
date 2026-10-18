@@ -37,6 +37,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
 input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.15);box-shadow:0 2px 12px rgba(139,92,246,.5)}
 .remove-box{background:rgba(239,68,68,.04);border:1px solid rgba(239,68,68,.1);border-radius:.65rem;padding:.75rem 1rem}
 @media(max-width:768px){.filter-row{flex-direction:column}.filter-select{min-width:100%}}
+.field-label{font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem}
 body{font-family:'Inter',sans-serif;background:#09090b;color:#e4e4e7;overflow-x:hidden;min-height:100vh}
 ::-webkit-scrollbar{width:6px}
 ::-webkit-scrollbar-track{background:transparent}
@@ -260,6 +261,7 @@ textarea.input-field{resize:vertical;min-height:80px}
 </div>
 <div style="padding:.6rem 0;flex:1">
 <button class="nav-btn active-nav" onclick="goTo('home')" data-nav="home"><i data-lucide="layout-grid" style="width:17px;height:17px"></i>Home</button>
+<button class="nav-btn" onclick="goTo('community-sites')" data-nav="community-sites"><i data-lucide="globe-2" style="width:17px;height:17px"></i>Community Sites</button>
 <button class="nav-btn" onclick="goTo('posts')" data-nav="posts"><i data-lucide="message-square" style="width:17px;height:17px"></i>Posts</button>
 <button class="nav-btn" onclick="goTo('contributions')" data-nav="contributions"><i data-lucide="lightbulb" style="width:17px;height:17px"></i>Contributions</button>
 <button class="nav-btn" onclick="goTo('innovators')" data-nav="innovators"><i data-lucide="sparkles" style="width:17px;height:17px"></i>Innovators</button>
@@ -291,7 +293,52 @@ textarea.input-field{resize:vertical;min-height:80px}
 <h2 style="font-size:1.2rem;font-weight:700;color:#e4e4e7;margin-bottom:1.25rem">Wiki Sites</h2>
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.15rem;margin-bottom:2rem" id="wikiSitesGrid"></div>
 <h2 style="font-size:1.2rem;font-weight:700;color:#e4e4e7;margin-bottom:1.25rem">Partner Sites</h2>
-<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.15rem" id="partnerSitesGrid"></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.15rem;margin-bottom:2rem" id="partnerSitesGrid"></div>
+<div style="display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;margin-bottom:1.25rem">
+  <h2 style="font-size:1.2rem;font-weight:700;color:#e4e4e7">Community Sites</h2>
+  <button class="btn-outline btn-sm" onclick="goTo('community-sites')">Browse &amp; submit sites</button>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.15rem" id="homeCommunitySitesGrid"></div>
+</div>
+
+<!-- COMMUNITY SITES PAGE -->
+<div class="page" id="page-community-sites">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem;flex-wrap:wrap;margin-bottom:1.5rem">
+    <div><h2 style="font-size:1.3rem;font-weight:800;color:#e4e4e7">Community Sites</h2><p style="font-size:.82rem;color:#52525b;margin-top:.15rem">Discover projects shared by the community or add your own.</p></div>
+  </div>
+  <form id="communitySiteForm" onsubmit="submitCommunitySite(event)" class="glass" style="display:grid;gap:.8rem;border-radius:1rem;padding:1.25rem;margin-bottom:1.5rem;max-width:850px">
+    <h3 style="font-size:1rem;font-weight:700">Share a site</h3>
+    <div><label class="field-label" for="csName">Name *</label><input class="input-field" id="csName" maxlength="100" required placeholder="Your project name"></div>
+    <div><label class="field-label" for="csDesc">Description *</label><textarea class="input-field" id="csDesc" maxlength="1000" required placeholder="What does your site do?"></textarea></div>
+    <div><label class="field-label" for="csGoal">Goal *</label><textarea class="input-field" id="csGoal" maxlength="1000" required placeholder="What are you trying to achieve?"></textarea></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:.8rem">
+      <div><label class="field-label" for="csMembers">Members *</label><input class="input-field" id="csMembers" type="number" min="0" step="1" required value="0"></div>
+      <div><label class="field-label" for="csRating">Rating (1–5) *</label><input class="input-field" id="csRating" type="number" min="1" max="5" step="0.1" required value="5"></div>
+      <div><label class="field-label" for="csTheme">Theme *</label><select class="input-field" id="csTheme" required><option>Coding</option><option>Sports</option><option>Health</option><option>Communication</option><option>Education</option><option>Games</option><option>Design</option><option>Business</option><option>Other</option></select></div>
+    </div>
+    <div><label class="field-label" for="csLink">Main site link *</label><input class="input-field" id="csLink" type="url" required placeholder="https://example.com"></div>
+    <div><label class="field-label" for="csLanding">Landing page link *</label><input class="input-field" id="csLanding" type="url" required placeholder="https://example.com/about"></div>
+    <div>
+      <label class="field-label">Social media (optional)</label>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:.7rem;margin-top:.35rem">
+        <input class="input-field" id="csInstagram" type="url" placeholder="Instagram URL (optional)">
+        <input class="input-field" id="csTikTok" type="url" placeholder="TikTok URL (optional)">
+        <input class="input-field" id="csYouTube" type="url" placeholder="YouTube URL (optional)">
+        <input class="input-field" id="csEmail" type="email" placeholder="Contact email (optional)">
+      </div>
+    </div>
+    <div>
+      <label class="field-label">Brand colors * (choose at least 3)</label>
+      <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.35rem">
+        <label style="font-size:.72rem;color:#a1a1aa">Color 1 <input id="csColor1" type="color" value="#8b5cf6" required></label>
+        <label style="font-size:.72rem;color:#a1a1aa">Color 2 <input id="csColor2" type="color" value="#3b82f6" required></label>
+        <label style="font-size:.72rem;color:#a1a1aa">Color 3 <input id="csColor3" type="color" value="#22c55e" required></label>
+      </div>
+    </div>
+    <button class="btn-primary" type="submit" id="csSubmitBtn" style="justify-content:center">Upload Site</button>
+  </form>
+  <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:.85rem">Sites from the community</h3>
+  <div id="communitySitesGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem"></div>
 </div>
 
 <!-- POSTS PAGE -->
@@ -958,6 +1005,7 @@ function handleRoute() {
 
     switch (hash) {
         case 'home': renderSites(); break;
+        case 'community-sites': loadCommunitySites(); break;
         case 'posts': loadPosts(); renderCategoryFilters(); break;
         case 'innovators': loadInnovatorHubs(); break;
         case 'users': loadUsers(); break;
@@ -1009,6 +1057,103 @@ function renderSites() {
     mainGrid.innerHTML = renderSiteCards(epsilonSites.filter(s => s.name !== 'Epsilon Motor'));
     wikiGrid.innerHTML = renderSiteCards(wikiSites);
     partnerGrid.innerHTML = renderSiteCards(partnerSites);
+    loadCommunitySites();
+}
+
+function safeExternalUrl(value) {
+    try {
+        const url = new URL(value);
+        return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
+    } catch (_) { return ''; }
+}
+
+function renderCommunitySiteCards(sites) {
+    return sites.map(site => {
+        const uploader = site.profiles || {};
+        const colors = Array.isArray(site.colors) ? site.colors : [];
+        const safeColors = colors.map(color => /^#[0-9a-f]{6}$/i.test(color) ? color : '#8b5cf6');
+        const social = site.social_links || {};
+        const socials = [
+            ['Instagram', safeExternalUrl(social.instagram)],
+            ['TikTok', safeExternalUrl(social.tiktok)],
+            ['YouTube', safeExternalUrl(social.youtube)]
+        ].filter(([, url]) => url);
+        if (social.email) {
+            socials.push(['Email', 'mailto:' + encodeURIComponent(social.email)]);
+        }
+        const landingUrl = safeExternalUrl(site.landing_page_link);
+        const siteUrl = safeExternalUrl(site.link);
+        return `<article class="site-card" style="cursor:default;padding:1.15rem">
+            <div style="height:7px;border-radius:999px;margin-bottom:.9rem;background:linear-gradient(90deg,${safeColors.join(',')})"></div>
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem">
+                <h3 style="font-size:1.05rem;font-weight:700;color:#e4e4e7;overflow-wrap:anywhere">${escHtml(site.name)}</h3>
+                <span class="tag">${escHtml(site.theme)}</span>
+            </div>
+            <p style="font-size:.8rem;color:#a1a1aa;line-height:1.55;margin-top:.6rem">${escHtml(site.description)}</p>
+            <p style="font-size:.77rem;color:#71717a;line-height:1.5;margin-top:.5rem"><strong style="color:#a1a1aa">Goal:</strong> ${escHtml(site.goal)}</p>
+            <div style="display:flex;align-items:center;gap:.65rem;flex-wrap:wrap;margin-top:.75rem;font-size:.75rem;color:#a1a1aa">
+                <span>${Number(site.members) || 0} members</span><span>★ ${Number(site.rating).toFixed(1)}/5</span>
+            </div>
+            <p style="font-size:.7rem;color:#71717a;margin-top:.7rem">Shared by ${escHtml(uploader.display_name || uploader.username || 'Community member')}${uploader.username ? ' (@' + escHtml(uploader.username) + ')' : ''}</p>
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.85rem">
+                ${siteUrl ? `<a class="btn-primary btn-sm" href="${escHtml(siteUrl)}" target="_blank" rel="noopener noreferrer">Visit site</a>` : ''}
+                ${landingUrl ? `<a class="btn-outline btn-sm" href="${escHtml(landingUrl)}" target="_blank" rel="noopener noreferrer">Landing page</a>` : ''}
+                ${socials.map(([label, url]) => `<a class="btn-ghost" style="padding:.4rem .2rem;font-size:.72rem" href="${escHtml(url)}" target="_blank" rel="noopener noreferrer">${label}</a>`).join('')}
+            </div>
+        </article>`;
+    }).join('');
+}
+
+async function loadCommunitySites() {
+    const targets = [document.getElementById('homeCommunitySitesGrid'), document.getElementById('communitySitesGrid')].filter(Boolean);
+    if (!targets.length) return;
+    targets.forEach(target => target.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:#52525b">Loading community sites...</div>');
+    const { data: sites, error } = await supabaseClient.from('comm_sites')
+        .select('id,name,description,goal,members,link,landing_page_link,social_links,rating,theme,colors,created_at,user_id,profiles:profiles!comm_sites_user_id_fkey(username,display_name)')
+        .order('created_at', { ascending: false });
+    if (error) {
+        targets.forEach(target => target.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:2rem;color:#f87171">Could not load community sites: ${escHtml(error.message)}. Make sure the comm_sites table and policies are set up.</div>`);
+        return;
+    }
+    const cards = sites && sites.length ? renderCommunitySiteCards(sites) : '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:#52525b">No community sites have been shared yet.</div>';
+    targets.forEach(target => target.innerHTML = cards);
+}
+
+async function submitCommunitySite(event) {
+    event.preventDefault();
+    if (!currentUser) { toast('Please sign in to upload a site', 'error'); return; }
+    const button = document.getElementById('csSubmitBtn');
+    button.disabled = true;
+    button.textContent = 'Uploading...';
+    const value = id => document.getElementById(id).value.trim();
+    const payload = {
+        user_id: currentUser.id,
+        name: value('csName'),
+        description: value('csDesc'),
+        goal: value('csGoal'),
+        members: Number(value('csMembers')),
+        link: value('csLink'),
+        landing_page_link: value('csLanding'),
+        social_links: {
+            instagram: value('csInstagram') || null,
+            tiktok: value('csTikTok') || null,
+            youtube: value('csYouTube') || null,
+            email: value('csEmail') || null
+        },
+        rating: Number(value('csRating')),
+        theme: value('csTheme'),
+        colors: ['csColor1', 'csColor2', 'csColor3'].map(id => document.getElementById(id).value)
+    };
+    const { error } = await supabaseClient.from('comm_sites').insert(payload);
+    button.disabled = false;
+    button.textContent = 'Upload Site';
+    if (error) { toast('Could not upload site: ' + error.message, 'error'); return; }
+    document.getElementById('communitySiteForm').reset();
+    document.getElementById('csColor1').value = '#8b5cf6';
+    document.getElementById('csColor2').value = '#3b82f6';
+    document.getElementById('csColor3').value = '#22c55e';
+    toast('Your site has been shared!', 'success');
+    await loadCommunitySites();
 }
 
 // ===================== POSTS =====================
