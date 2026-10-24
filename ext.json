@@ -3,7 +3,7 @@
     "name": "Epsilon Learn Formula Sheet",
     "desc": "An advanced cheat-sheet hub organized by categories like Math, Physics, and Code syntax.",
     "icon": "https://api.iconify.design/lucide/file-code.svg?color=%2322c55e",
-    "site": "Epsilon Learn",
+    "site": "Epsilon Hub",
     "author": "Warren Adrian",
     "nav_btn": "Formulas",
     "html": "<!DOCTYPE html><html><head><style>body{font-family:sans-serif;padding:1rem;background:#052e16;color:#f0fdf4}select,input,textarea,button{width:100%;padding:0.5rem;margin:0.3rem 0;border-radius:4px;border:none;background:#14532d;color:#f0fdf4}button{background:#22c55e;color:#052e16;font-weight:bold;cursor:pointer}ul{list-style:none;padding:0}li{background:#064e3b;margin:0.5rem 0;padding:0.8rem;border-radius:4px;border-left:4px solid #22c55e}</style></head><body><h2>Formula & Syntax Sheet</h2><select id=\"cat\"><option>Math</option><option>Physics</option><option>Programming</option></select><input id=\"t\" placeholder=\"Title (e.g. Quadratic Formula)\"><textarea id=\"c\" placeholder=\"Formula or code snippet...\"></textarea><button onclick=\"add()\">Save Entry</button><ul id=\"l\"></ul><script>let db=JSON.parse(localStorage.getItem('ep_formulas_v2')||'[]');function render(){document.getElementById('l').innerHTML=db.map(i=>`<li><small style=\"color:#86efac\">[${i.cat}]</small> <b>${i.t}</b><pre style=\"background:#022c22;padding:0.4rem;margin-top:0.3rem;border-radius:3px;overflow-x:auto\">${i.c}</pre></li>`).join('')}function add(){let cat=document.getElementById('cat').value,t=document.getElementById('t').value,c=document.getElementById('c').value;if(t&&c){db.push({cat,t,c});localStorage.setItem('ep_formulas_v2',JSON.stringify(db));document.getElementById('t').value='';document.getElementById('c').value='';render()}}render()</script></body></html>"
@@ -12,7 +12,7 @@
     "name": "Epsilon Learn Topic Checklist",
     "desc": "A chapter-by-chapter mastery roadmap to track what you've learned and what's next.",
     "icon": "https://api.iconify.design/lucide/list-checks.svg?color=%2322c55e",
-    "site": "Epsilon Learn",
+    "site": "Epsilon Hub",
     "author": "Warren Adrian",
     "nav_btn": "Checklist",
     "html": "<!DOCTYPE html><html><head><style>body{font-family:sans-serif;padding:1rem;background:#052e16;color:#f0fdf4}.row{display:flex;gap:0.5rem}input,button{padding:0.5rem;border-radius:4px;border:none}input[type=\"text\"]{flex:1;background:#14532d;color:#f0fdf4}button{background:#22c55e;color:#052e16;font-weight:bold;cursor:pointer}ul{list-style:none;padding:0}li{background:#14532d;margin:0.4rem 0;padding:0.6rem;border-radius:4px;display:flex;align-items:center;justify-content:space-between}</style></head><body><h2>Topic Roadmap</h2><div class=\"row\"><input id=\"txt\" placeholder=\"Add module or topic...\"><button onclick=\"add()\">Add</button></div><ul id=\"l\"></ul><script>let items=JSON.parse(localStorage.getItem('ep_roadmap')||'[]');function render(){document.getElementById('l').innerHTML=items.map((it,i)=>`<li><label style=\"display:flex;align-items:center;gap:0.5rem;cursor:pointer\"><input type=\"checkbox\" ${it.done?'checked':''} onchange=\"toggle(${i})\"><span style=\"${it.done?'text-decoration:line-through;opacity:0.5':''}\">${it.name}</span></label><button onclick=\"del(${i})\" style=\"background:#7f1d1d;color:#fca5a5;padding:0.2rem 0.5rem\">X</button></li>`).join('')}function add(){let name=document.getElementById('txt').value;if(name){items.push({name,done:false});save();document.getElementById('txt').value=''}}function toggle(i){items[i].done=!items[i].done;save()}function del(i){items.splice(i,1);save()}function save(){localStorage.setItem('ep_roadmap',JSON.stringify(items));render()}render()</script></body></html>"
@@ -21,7 +21,7 @@
     "name": "Epsilon Learn Daily Quiz",
     "desc": "Test yourself with quick multiple-choice questions you author yourself.",
     "icon": "https://api.iconify.design/lucide/help-circle.svg?color=%2322c55e",
-    "site": "Epsilon Learn",
+    "site": "Epsilon Hub",
     "author": "Warren Adrian",
     "nav_btn": "Quiz Builder",
     "html": "<!DOCTYPE html><html><head><style>body{font-family:sans-serif;padding:1rem;background:#052e16;color:#f0fdf4}input,button{width:100%;padding:0.5rem;margin:0.2rem 0;border-radius:4px;border:none;background:#14532d;color:#f0fdf4}button{background:#22c55e;color:#052e16;font-weight:bold;cursor:pointer}.opt{background:#064e3b;padding:0.5rem;margin:0.3rem 0;border-radius:4px;cursor:pointer;border:1px solid #22c55e}</style></head><body><h2>Quick Quiz</h2><div id=\"app\"><p id=\"q\">No questions loaded yet!</p><div id=\"opts\"></div><button onclick=\"nextQ()\" style=\"margin-top:1rem\">Next Question</button></div><script>let qs=[{q:\"What is 2 + 2?\",opts:[\"3\",\"4\",\"5\"],ans:1},{q:\"HTML stands for?\",opts:[\"Hyper Text Markup Language\",\"High Tech Modern Language\",\"Hyperlink Text Model\"],ans:0}];let idx=0;function render(){let curr=qs[idx];document.getElementById('qinnerText',curr.q);document.getElementById('q').innerText=curr.q;document.getElementById('opts').innerHTML=curr.opts.map((o,i)=>`<div class=\"opt\" onclick=\"check(${i},${curr.ans})\">${o}</div>`).join('')}function check(selected,correct){alert(selected===correct?\"Correct! 🎉\":\"Wrong! ❌\");nextQ()}function nextQ(){idx=(idx+1)%qs.length;render()}render()</script></body></html>"
@@ -30,7 +30,7 @@
     "name": "Epsilon Learn Resource Vault",
     "desc": "Keep track of useful links, documentation sites, and video tutorials.",
     "icon": "https://api.iconify.design/lucide/link.svg?color=%2322c55e",
-    "site": "Epsilon Learn",
+    "site": "Epsilon Hub",
     "author": "Warren Adrian",
     "nav_btn": "Resources",
     "html": "<!DOCTYPE html><html><head><style>body{font-family:sans-serif;padding:1rem;background:#052e16;color:#f0fdf4}input,button{width:100%;padding:0.5rem;margin:0.3rem 0;border-radius:4px;border:none;background:#14532d;color:#f0fdf4}button{background:#22c55e;color:#052e16;font-weight:bold;cursor:pointer}ul{list-style:none;padding:0}li{background:#064e3b;margin:0.5rem 0;padding:0.6rem;border-radius:4px}a{color:#86efac;text-decoration:none}</style></head><body><h2>Resource Vault</h2><input id=\"n\" placeholder=\"Resource Name (e.g. MDN Docs)\"><input id=\"u\" placeholder=\"URL (https://...)\"><button onclick=\"add()\">Save Link</button><ul id=\"l\"></ul><script>let links=JSON.parse(localStorage.getItem('ep_links')||'[]');function render(){document.getElementById('l').innerHTML=links.map(i=>`<li><b>${i.n}</b><br><a href=\"${i.u}\" target=\"_blank\">${i.u}</a></li>`).join('')}function add(){let n=document.getElementById('n').value,u=document.getElementById('u').value;if(n&&u){links.push({n,u});localStorage.setItem('ep_links',JSON.stringify(links));document.getElementById('n').value='';document.getElementById('u').value='';render()}}render()</script></body></html>"
@@ -39,7 +39,7 @@
     "name": "Epsilon Learn Code Snippets",
     "desc": "A quick playground to log code snippets or syntax notes while coding.",
     "icon": "https://api.iconify.design/lucide/terminal.svg?color=%2322c55e",
-    "site": "Epsilon Learn",
+    "site": "Epsilon Hub",
     "author": "Warren Adrian",
     "nav_btn": "Code Snippets",
     "html": "<!DOCTYPE html><html><head><style>body{font-family:sans-serif;padding:1rem;background:#052e16;color:#f0fdf4}input,textarea,button{width:100%;padding:0.5rem;margin:0.3rem 0;border-radius:4px;border:none;background:#14532d;color:#f0fdf4;font-family:monospace}textarea{height:100px}button{background:#22c55e;color:#052e16;font-weight:bold;cursor:pointer}ul{list-style:none;padding:0}li{background:#064e3b;margin:0.5rem 0;padding:0.6rem;border-radius:4px}</style></head><body><h2>Code Snippet Log</h2><input id=\"t\" placeholder=\"Snippet Title...\"><textarea id=\"s\" placeholder=\"Paste code here...\"></textarea><button onclick=\"add()\">Save Snippet</button><ul id=\"l\"></ul><script>let snip=JSON.parse(localStorage.getItem('ep_snips')||'[]');function render(){document.getElementById('l').innerHTML=snip.map(i=>`<li><b>${i.t}</b><pre style=\"background:#022c22;padding:0.4rem;margin-top:0.3rem;border-radius:3px;overflow-x:auto\">${i.s}</pre></li>`).join('')}function add(){let t=document.getElementById('t').value,s=document.getElementById('s').value;if(t&&s){snip.push({t,s});localStorage.setItem('ep_snips',JSON.stringify(snip));document.getElementById('t').value='';document.getElementById('s').value='';render()}}render()</script></body></html>"
