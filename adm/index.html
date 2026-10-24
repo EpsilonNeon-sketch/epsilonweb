@@ -1,0 +1,2025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Epsilon Hub · Admin</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="icon" href="https://epsilonhub.vercel.app/epsilon%20logo.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#09090b;color:#e4e4e7;overflow-x:hidden;min-height:100vh}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(139,92,246,.25);border-radius:10px}
+.bg-grid{position:fixed;inset:0;z-index:-2;background-image:radial-gradient(rgba(139,92,246,.06) 1px,transparent 1px);background-size:32px 32px;pointer-events:none}
+.bg-glow{position:fixed;inset:0;z-index:-1;background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(124,58,237,.12) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 80% 100%,rgba(139,92,246,.06) 0%,transparent 50%);pointer-events:none}
+.glass{background:rgba(20,20,30,.85);backdrop-filter:blur(20px);border:1px solid rgba(139,92,246,.12)}
+.input-field{width:100%;border-radius:.65rem;padding:.75rem 1rem;background:rgba(15,15,25,.8);border:1.5px solid rgba(139,92,246,.18);transition:all .25s;font-size:.88rem;font-family:'Inter',sans-serif;color:#e4e4e7}
+.input-field:focus{outline:none;border-color:#8b5cf6;box-shadow:0 0 0 3px rgba(139,92,246,.15)}
+.input-field::placeholder{color:#52525b}
+.btn-primary{padding:.7rem 1.4rem;border-radius:.65rem;background:linear-gradient(135deg,#7c3aed,#8b5cf6,#a78bfa);color:#fff;font-size:.86rem;font-weight:600;border:none;cursor:pointer;transition:all .25s;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:.4rem}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(139,92,246,.35)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-outline{padding:.7rem 1.4rem;border-radius:.65rem;background:transparent;color:#a78bfa;font-size:.86rem;font-weight:600;border:1.5px solid rgba(139,92,246,.28);cursor:pointer;transition:all .25s;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:.4rem}
+.btn-outline:hover{border-color:#8b5cf6;background:rgba(139,92,246,.08)}
+.btn-sm{padding:.45rem .9rem;font-size:.78rem}
+.btn-ghost{padding:.5rem 1rem;border-radius:.5rem;background:transparent;color:#a1a1aa;font-size:.82rem;font-weight:500;border:none;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:.35rem}
+.btn-ghost:hover{color:#e4e4e7;background:rgba(139,92,246,.08)}
+.btn-danger{padding:.5rem 1rem;border-radius:.5rem;background:rgba(239,68,68,.1);color:#f87171;font-size:.8rem;font-weight:600;border:1px solid rgba(239,68,68,.2);cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:.35rem}
+.btn-danger:hover{background:rgba(239,68,68,.2)}
+.sidebar{position:fixed;left:0;top:0;height:100vh;width:250px;background:rgba(12,12,20,.97);backdrop-filter:blur(24px);border-right:1px solid rgba(139,92,246,.08);transition:transform .35s cubic-bezier(.4,0,.2,1);z-index:100;overflow-y:auto;display:flex;flex-direction:column}
+.sidebar.closed{transform:translateX(-100%)}
+.main-wrap{margin-left:250px;transition:margin-left .35s cubic-bezier(.4,0,.2,1);min-height:100vh}
+.main-wrap.expanded{margin-left:0}
+.menu-toggle{position:fixed;top:1rem;left:1rem;z-index:101;background:linear-gradient(135deg,#7c3aed,#8b5cf6);border:none;padding:.6rem;border-radius:.6rem;cursor:pointer;color:#fff;box-shadow:0 4px 16px rgba(139,92,246,.3);display:none;align-items:center;justify-content:center}
+.nav-btn{display:flex;align-items:center;gap:.7rem;padding:.65rem 1.15rem;margin:.12rem .65rem;border-radius:.6rem;font-size:.84rem;font-weight:500;color:#71717a;cursor:pointer;transition:all .2s;border:none;background:transparent;width:calc(100% - 1.3rem);font-family:'Inter',sans-serif;text-align:left}
+.nav-btn:hover{background:rgba(139,92,246,.08);color:#c4b5fd}
+.nav-btn.active-nav{background:linear-gradient(135deg,rgba(139,92,246,.18),rgba(124,58,237,.12))!important;color:#c4b5fd!important;border:1px solid rgba(139,92,246,.18)}
+.page{display:none;padding:2rem 2.5rem;animation:fadeUp .35s ease}
+.page.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.card{background:rgba(20,20,30,.75);border:1px solid rgba(139,92,246,.1);border-radius:1rem;overflow:hidden;transition:all .3s}
+.card:hover{border-color:rgba(139,92,246,.22);box-shadow:0 12px 40px rgba(139,92,246,.08)}
+.avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#8b5cf6);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:.85rem;flex-shrink:0;overflow:hidden}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.avatar-sm{width:32px;height:32px;font-size:.7rem}
+.avatar-lg{width:64px;height:64px;font-size:1.4rem}
+.tag{display:inline-flex;align-items:center;padding:.18rem .55rem;border-radius:9999px;font-size:.68rem;font-weight:600;background:rgba(139,92,246,.1);color:#a78bfa;border:1px solid rgba(139,92,246,.12)}
+.tag-green{background:rgba(74,222,128,.1);color:#4ade80;border-color:rgba(74,222,128,.18)}
+.tag-yellow{background:rgba(251,191,36,.1);color:#fbbf24;border-color:rgba(251,191,36,.18)}
+.tag-red{background:rgba(248,113,113,.1);color:#f87171;border-color:rgba(248,113,113,.18)}
+.tag-blue{background:rgba(96,165,250,.1);color:#60a5fa;border-color:rgba(96,165,250,.18)}
+.tag-gray{background:rgba(161,161,170,.1);color:#a1a1aa;border-color:rgba(161,161,170,.18)}
+.divider{height:1px;background:rgba(139,92,246,.08);margin:.75rem 0}
+.toast-container{position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:.5rem}
+.toast{padding:.85rem 1.25rem;border-radius:.7rem;color:#fff;font-weight:500;font-size:.85rem;box-shadow:0 8px 32px rgba(0,0,0,.3);transform:translateX(120%);transition:transform .4s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;gap:.5rem;max-width:360px}
+.toast.show{transform:translateX(0)}
+.toast-success{background:linear-gradient(135deg,#059669,#10b981)}
+.toast-error{background:linear-gradient(135deg,#dc2626,#ef4444)}
+.toast-info{background:linear-gradient(135deg,#7c3aed,#8b5cf6)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);z-index:300;display:none;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.active{display:flex}
+.modal-box{background:rgba(18,18,28,.98);border:1px solid rgba(139,92,246,.15);border-radius:1.15rem;max-width:560px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.5);animation:modalIn .3s cubic-bezier(.22,1,.36,1)}
+@keyframes modalIn{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.data-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.data-table thead th{text-align:left;padding:.85rem 1rem;font-size:.7rem;font-weight:700;color:#71717a;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid rgba(139,92,246,.08);position:sticky;top:0;background:rgba(18,18,28,.95);backdrop-filter:blur(8px);z-index:1}
+.data-table tbody tr{border-bottom:1px solid rgba(139,92,246,.04);transition:background .15s}
+.data-table tbody tr:hover{background:rgba(139,92,246,.04)}
+.data-table tbody td{padding:.85rem 1rem;color:#d4d4d8;vertical-align:middle}
+.data-table tbody td.muted{color:#71717a}
+.kpi-card{background:rgba(20,20,30,.75);border:1px solid rgba(139,92,246,.1);border-radius:1rem;padding:1.5rem;transition:all .3s;position:relative;overflow:hidden}
+.kpi-card:hover{border-color:rgba(139,92,246,.25);transform:translateY(-2px);box-shadow:0 12px 32px rgba(139,92,246,.08)}
+.kpi-icon{width:48px;height:48px;border-radius:.85rem;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:1rem}
+.kpi-value{font-size:2rem;font-weight:800;color:#e4e4e7;line-height:1.1;margin-bottom:.25rem}
+.kpi-label{font-size:.78rem;color:#71717a;font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+.kpi-delta{font-size:.72rem;color:#4ade80;margin-top:.4rem;display:inline-flex;align-items:center;gap:.2rem}
+.chart-card{background:rgba(20,20,30,.75);border:1px solid rgba(139,92,246,.1);border-radius:1rem;padding:1.5rem}
+.chart-card h3{font-size:.95rem;font-weight:700;color:#e4e4e7;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.chart-wrap{position:relative;height:280px}
+.pulse-dot{width:8px;height:8px;border-radius:50%;background:#4ade80;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.search-wrap{position:relative;max-width:400px;flex:1}
+.search-wrap svg{position:absolute;left:.85rem;top:50%;transform:translateY(-50%);color:#52525b;pointer-events:none}
+.filter-select{padding:.55rem 2rem .55rem .85rem;border-radius:.6rem;background:rgba(15,15,25,.8);border:1.5px solid rgba(139,92,246,.18);color:#a1a1aa;font-size:.8rem;font-family:'Inter',sans-serif;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .6rem center;cursor:pointer;transition:all .2s;min-width:140px}
+.filter-select:focus{outline:none;border-color:#8b5cf6;box-shadow:0 0 0 2px rgba(139,92,246,.12)}
+.filter-select option{background:#18182a;color:#e4e4e7}
+.empty-state{text-align:center;padding:3rem 1rem;color:#52525b}
+.empty-state svg{margin:0 auto .75rem;opacity:.4}
+.spinner{width:32px;height:32px;border:3px solid rgba(139,92,246,.15);border-top-color:#8b5cf6;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto .75rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+.auth-shell{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:#09090b;padding:1.5rem;overflow-y:auto}
+.auth-card{background:rgba(20,20,30,.95);border:1px solid rgba(139,92,246,.15);border-radius:1.15rem;box-shadow:0 24px 80px rgba(139,92,246,.1);max-width:460px;width:100%;backdrop-filter:blur(24px);overflow:hidden;padding:2.5rem}
+.row-flex{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.spacer{flex:1}
+.badge-admin{display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .55rem;border-radius:9999px;font-size:.65rem;font-weight:700;background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.2);text-transform:uppercase;letter-spacing:.04em}
+@media(max-width:768px){
+.sidebar{transform:translateX(-100%)}
+.sidebar.open{transform:translateX(0)}
+.main-wrap{margin-left:0}
+.page{padding:1.25rem;padding-top:4rem}
+.menu-toggle{display:flex!important}
+.kpi-grid{grid-template-columns:repeat(2,1fr)!important}
+.chart-grid{grid-template-columns:1fr!important}
+}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ============ LOGIN (SIGN-IN ONLY — NO SIGN-UP) ============ -->
+<div id="authPage" class="auth-shell">
+  <div class="auth-card">
+    <div style="text-align:center;margin-bottom:2rem">
+      <div style="width:64px;height:64px;border-radius:1rem;background:linear-gradient(135deg,#7c3aed,#8b5cf6);margin:0 auto 1.25rem;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:900;color:#fff;box-shadow:0 10px 30px rgba(139,92,246,.25)">ε</div>
+      <h1 style="font-size:1.6rem;font-weight:800;background:linear-gradient(135deg,#fff,#c4b5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Admin Console</h1>
+      <p style="font-size:.85rem;color:#71717a;margin-top:.4rem">Epsilon Hub · Administrator access only</p>
+    </div>
+    <div style="background:rgba(139,92,246,.04);border:1px solid rgba(139,92,246,.1);border-radius:.7rem;padding:.85rem 1rem;display:flex;align-items:flex-start;gap:.55rem;margin-bottom:1.5rem">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" style="flex-shrink:0;margin-top:2px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <p style="font-size:.75rem;color:#a1a1aa;line-height:1.55">Sign in with an existing Epsilon Hub account. New account registration is disabled in the admin console.</p>
+    </div>
+    <form id="signinForm" onsubmit="adminSignIn(event)" style="display:flex;flex-direction:column;gap:.85rem">
+      <div>
+        <label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Email</label>
+        <input type="email" class="input-field" id="siEmail" placeholder="you@example.com" required autocomplete="email">
+      </div>
+      <div>
+        <label style="font-size:.73rem;font-weight:600;color:#71717a;display:block;margin-bottom:.3rem">Password</label>
+        <input type="password" class="input-field" id="siPass" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn-primary" style="width:100%;justify-content:center;margin-top:.5rem" id="siBtn">
+        <i data-lucide="log-in" style="width:16px;height:16px"></i>Sign In to Admin
+      </button>
+      <p id="siErr" style="color:#f87171;font-size:.8rem;text-align:center;display:none"></p>
+    </form>
+    <p style="font-size:.7rem;color:#3f3f46;text-align:center;margin-top:1.5rem;line-height:1.5">By signing in, you acknowledge that all admin actions are logged. Unauthorized access is prohibited.</p>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app" style="display:none">
+  <button class="menu-toggle" onclick="toggleSidebar()"><i data-lucide="menu" style="width:20px;height:20px"></i></button>
+
+  <nav class="sidebar" id="sidebar">
+    <div style="padding:1.35rem 1.15rem;border-bottom:1px solid rgba(139,92,246,.08)">
+      <div style="display:flex;align-items:center;gap:.7rem;cursor:pointer" onclick="goTo('dashboard')">
+        <div style="width:38px;height:38px;border-radius:.7rem;background:linear-gradient(135deg,#7c3aed,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:1.05rem;font-weight:900;color:#fff">ε</div>
+        <div>
+          <div style="font-size:1.05rem;font-weight:800;color:#e4e4e7">Epsilon Admin</div>
+          <div style="font-size:.62rem;color:#52525b;font-weight:500;letter-spacing:.06em;text-transform:uppercase">Control Console</div>
+        </div>
+      </div>
+    </div>
+    <div style="padding:.6rem 0;flex:1">
+      <button class="nav-btn active-nav" onclick="goTo('dashboard')" data-nav="dashboard"><i data-lucide="layout-dashboard" style="width:17px;height:17px"></i>Dashboard</button>
+      <button class="nav-btn" onclick="goTo('users')" data-nav="users"><i data-lucide="users" style="width:17px;height:17px"></i>Users</button>
+      <button class="nav-btn" onclick="goTo('locations')" data-nav="locations"><i data-lucide="map-pin" style="width:17px;height:17px"></i>User Locations</button>
+      <button class="nav-btn" onclick="goTo('sites')" data-nav="sites"><i data-lucide="globe-2" style="width:17px;height:17px"></i>Websites</button>
+      <button class="nav-btn" onclick="goTo('posts')" data-nav="posts"><i data-lucide="message-square" style="width:17px;height:17px"></i>Posts</button>
+      <button class="nav-btn" onclick="goTo('hubs')" data-nav="hubs"><i data-lucide="sparkles" style="width:17px;height:17px"></i>Innovator Hubs</button>
+      <button class="nav-btn" onclick="goTo('sessions')" data-nav="sessions"><i data-lucide="activity" style="width:17px;height:17px"></i>Traffic & Sessions</button>
+      <button class="nav-btn" onclick="goTo('tokens')" data-nav="tokens"><i data-lucide="coins" style="width:17px;height:17px"></i>Tokens Ledger</button>
+      <button class="nav-btn" onclick="goTo('audit')" data-nav="audit"><i data-lucide="shield" style="width:17px;height:17px"></i>Audit Log</button>
+      <button class="nav-btn" onclick="goTo('admin-chat')" data-nav="admin-chat"><i data-lucide="messages-square" style="width:17px;height:17px"></i>Admin Chat</button>
+      <div class="divider" style="margin:.5rem 1rem"></div>
+      <button class="nav-btn" onclick="goTo('settings')" data-nav="settings"><i data-lucide="settings" style="width:17px;height:17px"></i>Settings</button>
+    </div>
+    <div style="padding:.85rem 1.1rem;border-top:1px solid rgba(139,92,246,.08)">
+      <div style="display:flex;align-items:center;gap:.65rem;margin-bottom:.6rem">
+        <div class="avatar avatar-sm" id="sideAvatar">A</div>
+        <div style="min-width:0;flex:1">
+          <div style="font-size:.8rem;font-weight:600;color:#e4e4e7;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="sideName">Admin</div>
+          <div style="font-size:.65rem;color:#52525b" id="sideUser">@admin</div>
+        </div>
+      </div>
+      <button onclick="signOut()" class="btn-ghost" style="width:100%;justify-content:center;border:1px solid rgba(139,92,246,.1);border-radius:.5rem;padding:.5rem"><i data-lucide="log-out" style="width:14px;height:14px"></i>Sign Out</button>
+    </div>
+  </nav>
+
+  <div class="main-wrap" id="mainWrap">
+
+    <!-- ============ DASHBOARD ============ -->
+    <div class="page active" id="page-dashboard">
+      <div style="background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(139,92,246,.06));border:1px solid rgba(139,92,246,.12);border-radius:1.15rem;padding:2.25rem;position:relative;overflow:hidden;margin-bottom:2rem">
+        <div style="position:absolute;top:-40px;right:-40px;width:180px;height:180px;border-radius:50%;background:rgba(139,92,246,.06)"></div>
+        <h1 style="font-size:1.6rem;font-weight:800;color:#e4e4e7;margin-bottom:.4rem;position:relative">Welcome back, <span id="adminGreeting" style="background:linear-gradient(135deg,#a78bfa,#c4b5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Admin</span></h1>
+        <p style="font-size:.88rem;color:#71717a;max-width:560px;position:relative;line-height:1.6">Monitor your ecosystem in real-time — users, content, traffic, tokens, and community health all in one place.</p>
+      </div>
+
+      <!-- KPI cards -->
+      <div class="kpi-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1.15rem;margin-bottom:2rem">
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:rgba(139,92,246,.12);color:#a78bfa"><i data-lucide="users" style="width:24px;height:24px"></i></div>
+          <div class="kpi-value" id="kpiUsers">—</div>
+          <div class="kpi-label">Total Users</div>
+          <div class="kpi-delta" id="kpiUsersDelta"><i data-lucide="trending-up" style="width:12px;height:12px"></i> <span>—</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:rgba(74,222,128,.12);color:#4ade80"><i data-lucide="message-square" style="width:24px;height:24px"></i></div>
+          <div class="kpi-value" id="kpiPosts">—</div>
+          <div class="kpi-label">Total Posts</div>
+          <div class="kpi-delta" id="kpiPostsDelta"><i data-lucide="trending-up" style="width:12px;height:12px"></i> <span>—</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:rgba(251,191,36,.12);color:#fbbf24"><i data-lucide="lightbulb" style="width:24px;height:24px"></i></div>
+          <div class="kpi-value" id="kpiIdeas">—</div>
+          <div class="kpi-label">Community Ideas</div>
+          <div class="kpi-delta" id="kpiIdeasDelta"><i data-lucide="trending-up" style="width:12px;height:12px"></i> <span>—</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:rgba(96,165,250,.12);color:#60a5fa"><i data-lucide="activity" style="width:24px;height:24px"></i></div>
+          <div class="kpi-value" id="kpiOnline">—</div>
+          <div class="kpi-label">Live Sessions</div>
+          <div class="kpi-delta" style="color:#60a5fa"><span class="pulse-dot" style="display:inline-block"></span> <span style="margin-left:.25rem">real-time</span></div>
+        </div>
+      </div>
+
+      <!-- Charts grid -->
+      <div class="chart-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1.15rem;margin-bottom:1.15rem">
+        <div class="chart-card">
+          <h3><i data-lucide="user-plus" style="width:16px;height:16px;color:#a78bfa"></i>New users (last 30 days)</h3>
+          <div class="chart-wrap"><canvas id="chartUserGrowth"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3><i data-lucide="message-circle" style="width:16px;height:16px;color:#4ade80"></i>Posts per day (last 30 days)</h3>
+          <div class="chart-wrap"><canvas id="chartPostsTrend"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3><i data-lucide="globe-2" style="width:16px;height:16px;color:#60a5fa"></i>Active sessions by site</h3>
+          <div class="chart-wrap"><canvas id="chartSessionsBySite"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3><i data-lucide="lightbulb" style="width:16px;height:16px;color:#fbbf24"></i>Ideas by status</h3>
+          <div class="chart-wrap"><canvas id="chartIdeasByStatus"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Top users + recent activity -->
+      <div class="chart-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1.15rem">
+        <div class="chart-card">
+          <h3><i data-lucide="coins" style="width:16px;height:16px;color:#fbbf24"></i>Top 10 users by tokens</h3>
+          <div class="chart-wrap" style="height:320px"><canvas id="chartTopTokens"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3><i data-lucide="zap" style="width:16px;height:16px;color:#a78bfa"></i>Recent sign-ups</h3>
+          <div id="recentSignups" style="display:flex;flex-direction:column;gap:.5rem;max-height:320px;overflow-y:auto"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ USERS ============ -->
+    <div class="page" id="page-users">
+      <div style="margin-bottom:1.5rem">
+        <h2 style="font-size:1.3rem;font-weight:800;color:#e4e4e7">User Management</h2>
+        <p style="font-size:.82rem;color:#52525b;margin-top:.15rem">View, search, and manage every registered Epsilon Hub account</p>
+      </div>
+      <div class="row-flex" style="margin-bottom:1.25rem;gap:.6rem">
+        <div class="search-wrap" style="flex:1;max-width:380px">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" class="input-field" id="userSearchInput" placeholder="Search by username, name, or email..." style="padding-left:2.5rem;font-size:.82rem" oninput="debouncedLoadUsers()">
+        </div>
+        <select class="filter-select" id="userSortSelect" onchange="loadUsers()">
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+          <option value="tokens">Most tokens</option>
+          <option value="followers">Most followers</option>
+          <option value="posts">Most posts</option>
+        </select>
+        <select class="filter-select" id="userFilterSelect" onchange="loadUsers()">
+          <option value="all">All users</option>
+          <option value="online">Online now</option>
+          <option value="with_posts">With posts</option>
+          <option value="no_bio">Missing bio</option>
+        </select>
+        <button class="btn-outline btn-sm" onclick="loadUsers()"><i data-lucide="refresh-cw" style="width:13px;height:13px"></i>Refresh</button>
+        <span class="spacer"></span>
+        <span class="tag" id="usersCountTag">0 users</span>
+      </div>
+      <div class="card" style="overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Email</th>
+              <th>Tokens</th>
+              <th>Followers</th>
+              <th>Posts</th>
+              <th>Status</th>
+              <th>Joined</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="usersTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============ USER LOCATIONS ============ -->
+    <div class="page" id="page-locations">
+      <div style="margin-bottom:1.5rem">
+        <h2 style="font-size:1.3rem;font-weight:800;color:#e4e4e7">User Locations</h2>
+        <p style="font-size:.82rem;color:#52525b;margin-top:.15rem">Country-level distribution based on the location in each user profile</p>
+      </div>
+      <div class="row-flex" style="margin-bottom:1rem;gap:.6rem">
+        <span class="tag tag-blue" id="locationUserCount">0 users located</span>
+        <span class="tag" id="locationCountryCount">0 countries</span>
+        <span class="spacer"></span>
+        <button class="btn-outline btn-sm" onclick="loadUserLocations()"><i data-lucide="refresh-cw" style="width:13px;height:13px"></i>Refresh</button>
+      </div>
+      <div class="chart-grid" style="display:grid;grid-template-columns:minmax(0,2fr) minmax(260px,1fr);gap:1.15rem;align-items:start">
+        <div class="card" style="height:520px;position:relative;z-index:0"><div id="userLocationsMap" style="height:100%;width:100%"></div></div>
+        <div class="card" style="max-height:520px;overflow:auto">
+          <table class="data-table">
+            <thead><tr><th>Country</th><th>Users</th></tr></thead>
+            <tbody id="locationCountryTable"><tr><td colspan="2" class="empty-state">Loading locations...</td></tr></tbody>
+          </table>
+          <div id="unmappedLocations" style="padding:.8rem 1rem;color:#71717a;font-size:.76rem;line-height:1.5"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ WEBSITES ============ -->
+    <div class="page" id="page-sites">
+      <div style="margin-bottom:1.5rem">
+        <h2 style="font-size:1.3rem;font-weight:800;color:#e4e4e7">Websites & Community Sites</h2>
+        <p style="font-size:.82rem;color:#52525b;margin-top:.15rem">All Epsilon main sites plus community-submitted projects</p>
+      </div>
+      <div class="chart-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1.15rem;margin-bottom:2rem">
+        <div class="kpi-card"><div class="kpi-icon" style="background:rgba(139,92,246,.12);color:#a78bfa"><i data-lucide="globe" style="width:22px;height:22px"></i></div><div class="kpi-value" id="kpiMainSites">—</div><div class="kpi-label">Main Sites</div></div>
+        <div class="kpi-card"><div class="kpi-icon" style="background:rgba(96,165,250,.12);color:#60a5fa"><i data-lucide="users" style="width:22px;height:22px"></i></div><div class="kpi-value" id="kpiCommSites">—</div><div class="kpi-label">Community Sites</div></div>
+        <div class="kpi-card"><div class="kpi-icon" style="background:rgba(74,222,128,.12);color:#4ade80"><i data-lucide="bar-chart-3" style="width:22px;height:22px"></i></div><div class="kpi-value" id="kpiAvgRating">—</div><div class="kpi-label">Avg Rating</div></div>
+        <div class="kpi-card"><div class="kpi-icon" style="background:rgba(251,191,36,.12);color:#fbbf24"><i data-lucide="users-2" style="width:22px;height:22px"></i></div><div class="kpi-value" id="kpiTotalMembers">—</div><div class="kpi-label">Total Members</div></div>
+      </div>
+      <h3 style="font-size:1.05rem;font-weight:700;color:#e4e4e7;margin-bottom:1rem">Official Epsilon Sites</h3>
+      <div id="mainSitesGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-bottom:2rem"></div>
+      <h3 style="font-size:1.05rem;font-weight:700;color:#e4e4e7;margin-bottom:1rem">Community-Submitted Sites</h3>
+      <div id="commSitesGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem"></div>
+    </div>
+
+    <!-- ============ POSTS ============ -->
+    <div class="page" id="page-posts">
+      <div style="margin-bottom:1.5rem">
+        <h2 style="font-size:1.3rem;font-weight:800;color:#e4e4e7">Posts Moderation</h2>
+        <p style="font-size:.82rem;color:#52525b;margin-top:.15rem">Review, filter, and remove community posts</p>
+      </div>
+      <div class="row-flex" style="margin-bottom:1.25rem;gap:.6rem">
+        <div class="search-wrap" style="flex:1;max-width:380px">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" class="input-field" id="postSearchInput" placeholder="Search title or content..." style="padding-left:2.5rem;font-size:.82rem" oninput="debouncedLoadPosts()">
+        </div>
+        <select class="filter-select" id="postCatFilter" onchange="loadPosts()">
+          <option value="all">All categories</option>
+          <option>General</option><option>Tech</option><option>Design</option><option>Business</option>
+          <option>Showcase</option><option>Help</option><option>Off-Topic</option>
+        </select>
+        <select class="filter-select" id="postSortFilter" onchange="loadPosts()">
+          <option value="newest">Newest</option>
+          <option value="oldest">Oldest</option>
+          <option value="most_liked">Most liked</option>
+        </select>
+        <button class="btn-outline btn-sm" onclick="loadPosts()"><i data-lucide="refresh-cw" style="width:13px;height:13px"></i>Refresh</button>
+        <span class="spacer"></span>
+        <span class="tag" id="postsCountTag">0 posts</span>
+      </div>
+      <div class="card" style="overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr><th>Author</th><th>Title</th><th>Category</th><th>Likes</th><th>Posted</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="postsTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============ INNOVATOR HUBS ============ -->
+    <div class="page" id="page-hubs">
+      <div style="margin-bottom:1.5rem">
+        <h2 style="font-size:1.3rem;font-weight:800;color:#e4e4e7">Innovator Hubs</h2>
+        <p style="font-size:.82rem;color:#52525b;margin-top:.15rem">All collaboration hubs with their member counts and activity</p>
+      </div>
+      <div class="row-flex" style="margin-bottom:1.25rem;gap:.6rem">
+        <button class="btn-outline btn-sm" onclick="loadHubs()"><i data-lucide="refresh-cw" style="width:13px;height:13px"></i>Refresh</button>
+        <span class="spacer"></span>
+        <span class="tag" id="hubsCountTag">0 hubs</span>
+      </div>
+      <div id="hubsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1rem"></div>
+    </div>
+
+    <!-- ============ SESSIONS / TRAFFIC ============ -->
+    <div class="page" id="page-sessions">
+      <div style="margin-bottom:1.5rem">
+        <h2 style="font-size:1.3rem;font-weight:800;color:#e4e4e7">Traffic & Sessions</h2>
+        <p style="font-size:.82rem;color:#52525b;margin-top:.15rem">Real-time and historical traffic from every Epsilon site using the tracker</p>
+      </div>
+      <div class="kpi-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1.15rem;margin-bottom:2rem">
+        <div class="kpi-card"><div class="kpi-icon" style="background:rgba(74,222,128,.12);color:#4ade80"><i data-lucide="wifi" style="width:22px;height:22px"></i></div><div class="kpi-value" id="kpiLiveNow">—</div><div class="kpi-label">Online Now</div></div>
+        <div class="kpi-card"><div class="kpi-icon" style="background:rgba(139,92,246,.12);color:#a78bfa"><i data-lucide="bar-chart-3" style="width:22px;height:22px"></i></div><div class="kpi-value" id="kpiTotalSessions">—</div><div class="kpi-label">Total Sessions</div></div>
+        <div class="kpi-card"><div class="kpi-icon" style="background:rgba(96,165,250,.12);color:#60a5fa"><i data-lucide="clock" style="width:22px;height:22px"></i></div><div class="kpi-value" id="kpiAvgDuration">—</div><div class="kpi-label">Avg Duration</div></div>
+        <div class="kpi-card"><div class="kpi-icon" style="background:rgba(251,191,36,.12);color:#fbbf24"><i data-lucide="globe" style="width:22px;height:22px"></i></div><div class="kpi-value" id="kpiSitesTracked">—</div><div class="kpi-label">Sites Tracked</div></div>
+      </div>
+      <div class="chart-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1.15rem;margin-bottom:1.15rem">
+        <div class="chart-card">
+          <h3><i data-lucide="activity" style="width:16px;height:16px;color:#4ade80"></i>Sessions per day (last 14 days)</h3>
+          <div class="chart-wrap"><canvas id="chartSessionsTrend"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3><i data-lucide="globe-2" style="width:16px;height:16px;color:#60a5fa"></i>Visits by site (last 30 days)</h3>
+          <div class="chart-wrap"><canvas id="chartVisitsBySite"></canvas></div>
+        </div>
+      </div>
+      <h3 style="font-size:1.05rem;font-weight:700;color:#e4e4e7;margin:1.5rem 0 1rem">Currently Online</h3>
+      <div class="card" style="overflow-x:auto">
+        <table class="data-table">
+          <thead><tr><th>User</th><th>Email</th><th>Site</th><th>Device</th><th>Started</th></tr></thead>
+          <tbody id="onlineTableBody"></tbody>
+        </table>
+      </div>
+      <h3 style="font-size:1.05rem;font-weight:700;color:#e4e4e7;margin:1.5rem 0 1rem">Recent Sessions</h3>
+      <div class="card" style="overflow-x:auto">
+        <table class="data-table">
+          <thead><tr><th>User</th><th>Site</th><th>Device</th><th>Duration</th><th>Started</th><th>Ended</th></tr></thead>
+          <tbody id="recentSessionsTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============ TOKENS LEDGER ============ -->
+    <div class="page" id="page-tokens">
+      <div style="margin-bottom:1.5rem">
+        <h2 style="font-size:1.3rem;font-weight:800;color:#e4e4e7">Tokens Ledger</h2>
+        <p style="font-size:.82rem;color:#52525b;margin-top:.15rem">Total token supply, distribution, and top holders</p>
+      </div>
+      <div class="kpi-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.15rem;margin-bottom:2rem">
+        <div class="kpi-card"><div class="kpi-icon" style="background:rgba(251,191,36,.12);color:#fbbf24"><i data-lucide="coins" style="width:22px;height:22px"></i></div><div class="kpi-value" id="kpiTotalSupply">—</div><div class="kpi-label">Total Token Supply</div></div>
+        <div class="kpi-card"><div class="kpi-icon" style="background:rgba(139,92,246,.12);color:#a78bfa"><i data-lucide="users" style="width:22px;height:22px"></i></div><div class="kpi-value" id="kpiAvgTokens">—</div><div class="kpi-label">Avg Per User</div></div>
+        <div class="kpi-card"><div class="kpi-icon" style="background:rgba(74,222,128,.12);color:#4ade80"><i data-lucide="trophy" style="width:22px;height:22px"></i></div><div class="kpi-value" id="kpiTopHolder">—</div><div class="kpi-label">Top Holder</div></div>
+      </div>
+      <div class="chart-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1.15rem;margin-bottom:1.5rem">
+        <div class="chart-card">
+          <h3><i data-lucide="bar-chart-3" style="width:16px;height:16px;color:#fbbf24"></i>Token distribution (buckets)</h3>
+          <div class="chart-wrap"><canvas id="chartTokenDist"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3><i data-lucide="trophy" style="width:16px;height:16px;color:#a78bfa"></i>Top 15 holders</h3>
+          <div class="chart-wrap" style="height:280px"><canvas id="chartTopHolders"></canvas></div>
+        </div>
+      </div>
+      <div class="card" style="overflow-x:auto">
+        <table class="data-table">
+          <thead><tr><th>User</th><th>Username</th><th>Tokens</th><th>Posts</th><th>Followers</th><th>Actions</th></tr></thead>
+          <tbody id="tokensTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============ AUDIT LOG ============ -->
+    <div class="page" id="page-audit">
+      <div style="margin-bottom:1.5rem">
+        <h2 style="font-size:1.3rem;font-weight:800;color:#e4e4e7">Admin Audit Log</h2>
+        <p style="font-size:.82rem;color:#52525b;margin-top:.15rem">Every admin action you take in this console is logged here</p>
+      </div>
+      <div class="row-flex" style="margin-bottom:1rem;gap:.6rem">
+        <button class="btn-outline btn-sm" onclick="renderAuditLog()"><i data-lucide="refresh-cw" style="width:13px;height:13px"></i>Refresh</button>
+        <button class="btn-danger btn-sm" onclick="clearAuditLog()"><i data-lucide="trash-2" style="width:13px;height:13px"></i>Clear log</button>
+        <span class="spacer"></span>
+        <span class="tag" id="auditCountTag">0 entries</span>
+      </div>
+      <div class="card" style="overflow-x:auto">
+        <table class="data-table">
+          <thead><tr><th>Time</th><th>Action</th><th>Target</th><th>Details</th></tr></thead>
+          <tbody id="auditTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============ ADMIN CHAT ============ -->
+    <div class="page" id="page-admin-chat">
+      <div style="margin-bottom:1.25rem">
+        <h2 style="font-size:1.3rem;font-weight:800;color:#e4e4e7">Admin Chat</h2>
+        <p style="font-size:.82rem;color:#71717a;margin-top:.2rem">A shared space for administrator updates and discussion.</p>
+      </div>
+      <section class="card" style="display:flex;flex-direction:column;min-height:calc(100vh - 10rem)">
+        <div class="row-flex" style="padding:.9rem 1.1rem;border-bottom:1px solid rgba(139,92,246,.1)">
+          <span class="pulse-dot" style="display:inline-block"></span>
+          <span style="font-size:.8rem;color:#a1a1aa">Admin messages</span>
+          <span class="spacer"></span>
+          <button class="btn-outline btn-sm" onclick="loadAdminChat()"><i data-lucide="refresh-cw" style="width:13px;height:13px"></i>Refresh</button>
+        </div>
+        <div id="adminChatMessages" aria-live="polite" style="flex:1;min-height:420px;max-height:calc(100vh - 19rem);overflow-y:auto;padding:1.25rem;display:flex;flex-direction:column;gap:.9rem">
+          <div class="empty-state"><div class="spinner"></div>Loading chat...</div>
+        </div>
+        <div style="border-top:1px solid rgba(139,92,246,.1);padding:1rem 1.1rem;background:rgba(12,12,20,.5)">
+          <div id="adminChatReplyingTo" style="display:none;margin-bottom:.6rem;padding:.55rem .75rem;border-left:2px solid #8b5cf6;background:rgba(139,92,246,.06);border-radius:.35rem;font-size:.78rem;color:#a1a1aa"></div>
+          <textarea id="adminChatInput" class="input-field" rows="3" maxlength="4000" placeholder="Write a message… (Ctrl/⌘ + Enter to send)" style="resize:vertical;min-height:80px" onkeydown="if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){event.preventDefault();sendAdminMessage()}"></textarea>
+          <div class="row-flex" style="margin-top:.65rem">
+            <span style="font-size:.72rem;color:#52525b">Messages are visible to admins.</span>
+            <span class="spacer"></span>
+            <button class="btn-primary" id="adminChatSendBtn" onclick="sendAdminMessage()"><i data-lucide="send" style="width:14px;height:14px"></i>Send message</button>
+          </div>
+        </div>
+     </section>
+    </div>
+
+    <!-- ============ SETTINGS ============ -->
+    <div class="page" id="page-settings">
+      <div style="margin-bottom:1.5rem">
+        <h2 style="font-size:1.3rem;font-weight:800;color:#e4e4e7">Settings</h2>
+        <p style="font-size:.82rem;color:#52525b;margin-top:.15rem">Manage your admin session</p>
+      </div>
+      <div class="glass" style="border-radius:1rem;padding:1.5rem;max-width:600px;margin-bottom:1.25rem">
+        <h3 style="font-size:1rem;font-weight:700;color:#e4e4e7;margin-bottom:1rem">Your Account</h3>
+        <div id="settingsAccountInfo" style="display:flex;flex-direction:column;gap:.5rem"></div>
+      </div>
+      <div class="glass" style="border-radius:1rem;padding:1.5rem;max-width:600px;margin-bottom:1.25rem">
+        <h3 style="font-size:1rem;font-weight:700;color:#e4e4e7;margin-bottom:1rem">Data Export</h3>
+        <p style="font-size:.82rem;color:#a1a1aa;line-height:1.6;margin-bottom:.85rem">Download a JSON snapshot of the entire ecosystem data for offline analysis or backup.</p>
+        <button class="btn-primary" onclick="exportSnapshot()"><i data-lucide="download" style="width:14px;height:14px"></i>Export Snapshot</button>
+      </div>
+      <div class="glass" style="border-radius:1rem;padding:1.5rem;max-width:600px">
+        <h3 style="font-size:1rem;font-weight:700;color:#e4e4e7;margin-bottom:1rem">Sign Out</h3>
+        <button class="btn-danger" onclick="signOut()"><i data-lucide="log-out" style="width:14px;height:14px"></i>Sign out of admin</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ USER DETAIL MODAL ============ -->
+<div class="modal-overlay" id="userModal">
+  <div class="modal-box" style="padding:1.75rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+      <h3 style="font-size:1.1rem;font-weight:700;color:#e4e4e7">User Details</h3>
+      <button onclick="closeUserModal()" class="btn-ghost" style="padding:.3rem"><i data-lucide="x" style="width:18px;height:18px"></i></button>
+    </div>
+    <div id="userModalContent"></div>
+  </div>
+</div>
+
+<script>
+/* =================================================================
+   EPSILON HUB · ADMIN CONSOLE
+   Standalone HTML admin panel for the Epsilon Hub ecosystem.
+   Uses the same Supabase backend as the public site.
+   Sign-in ONLY — no sign-up option.
+================================================================= */
+
+// ===================== SUPABASE =====================
+const { createClient } = supabase;
+const supabaseClient = createClient(
+  'https://gfsqzkyviivhvyqadpeg.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdmc3F6a3l2aWl2aHZ5cWFkcGVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0NDI0NDQsImV4cCI6MjA4NjAxODQ0NH0.MwC6dMZKFZMyklCJKqr4DPek8dxR-EswBZSd1L_AkMA',
+  { auth: { persistSession: true, storageKey: 'ep-admin-auth' } }
+);
+
+// ===================== STATE =====================
+let currentUser = null;
+let currentProfile = null;
+let charts = {};
+let usersCache = [];
+let ideasCache = [];
+let auditLog = [];
+
+// ===================== DATA =====================
+const epsilonSites = [
+  { name: "Epsilon Sports", desc: "Track scores, stats, and live sports updates", url: "https://epsilon-sports.vercel.app", theme: "Orange" },
+  { name: "Epsilon Motor", desc: "The ultimate wiki and hub for car enthusiasts", url: "https://epsilon-motor.vercel.app", theme: "Grey" },
+  { name: "Epsilon Learn", desc: "Interactive learning and education platform", url: "https://epsilon-learn.vercel.app", theme: "Green" },
+  { name: "Epsilon Azure", desc: "Business management system (BMS) and ERP platform", url: "https://epsilon-azure.vercel.app", theme: "Blue" },
+  { name: "Epsilon Heckle", desc: "Gaming portal and interactive community", url: "https://epsilon-heckle.vercel.app", theme: "Red" },
+  { name: "Epsilon Editz", desc: "Media editing software and tools", url: "https://epsilon-editz.vercel.app", theme: "Yellow" },
+  { name: "Epsilon Neote", desc: "Crash course site learn and enjoy for free", url: "https://epsilon-neote.vercel.app", theme: "Purple" }
+];
+
+// ===================== TOAST =====================
+function toast(msg, type = 'info') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  requestAnimationFrame(() => t.classList.add('show'));
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3500);
+}
+
+// ===================== HELPERS =====================
+function escHtml(str) {
+  if (str === null || str === undefined) return '';
+  const d = document.createElement('div');
+  d.textContent = String(str);
+  return d.innerHTML;
+}
+function getTimeAgo(dateStr) {
+  if (!dateStr) return '';
+  const now = new Date();
+  const d = new Date(dateStr);
+  const diff = Math.floor((now - d) / 1000);
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+  if (diff < 2592000) return Math.floor(diff / 86400) + 'd ago';
+  return d.toLocaleDateString();
+}
+function formatDate(dateStr) {
+  if (!dateStr) return '—';
+  return new Date(dateStr).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+function formatDuration(secs) {
+  if (!secs || secs < 0) return '—';
+  if (secs < 60) return secs + 's';
+  if (secs < 3600) return Math.floor(secs / 60) + 'm ' + (secs % 60) + 's';
+  return Math.floor(secs / 3600) + 'h ' + Math.floor((secs % 3600) / 60) + 'm';
+}
+function detectDevice(ua) {
+  if (!ua) return 'Unknown';
+  if (/mobile|android|iphone|ipad/i.test(ua)) return 'Mobile';
+  if (/mac/i.test(ua)) return 'macOS';
+  if (/windows/i.test(ua)) return 'Windows';
+  if (/linux/i.test(ua)) return 'Linux';
+  return 'Other';
+}
+function truncate(str, n) {
+  if (!str) return '';
+  return str.length > n ? str.slice(0, n) + '…' : str;
+}
+
+// ===================== AUDIT LOG =====================
+function logAction(action, target, details) {
+  auditLog.unshift({
+    time: new Date().toISOString(),
+    admin: currentUser?.email || 'unknown',
+    action,
+    target: target || '—',
+    details: details || '—'
+  });
+  if (auditLog.length > 200) auditLog = auditLog.slice(0, 200);
+  try { localStorage.setItem('ep-admin-audit', JSON.stringify(auditLog)); } catch (e) {}
+  if (document.getElementById('page-audit').classList.contains('active')) renderAuditLog();
+}
+function loadAuditLog() {
+  try {
+    const saved = localStorage.getItem('ep-admin-audit');
+    if (saved) auditLog = JSON.parse(saved);
+  } catch (e) { auditLog = []; }
+}
+function renderAuditLog() {
+  const tbody = document.getElementById('auditTableBody');
+  document.getElementById('auditCountTag').textContent = auditLog.length + ' entries';
+  if (!auditLog.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:2rem;color:#52525b">No admin actions logged yet</td></tr>';
+    return;
+  }
+  tbody.innerHTML = auditLog.map(entry => `
+    <tr>
+      <td class="muted" style="white-space:nowrap">${formatDate(entry.time)}</td>
+      <td><span class="tag tag-blue">${escHtml(entry.action)}</span></td>
+      <td>${escHtml(entry.target)}</td>
+      <td class="muted" style="max-width:400px;word-break:break-word">${escHtml(entry.details)}</td>
+    </tr>
+  `).join('');
+}
+function clearAuditLog() {
+  if (!confirm('Clear all audit log entries? This cannot be undone.')) return;
+  auditLog = [];
+  localStorage.removeItem('ep-admin-audit');
+  renderAuditLog();
+  toast('Audit log cleared', 'info');
+}
+
+// ===================== AUTH =====================
+async function adminSignIn(e) {
+  e.preventDefault();
+  const btn = document.getElementById('siBtn');
+  const err = document.getElementById('siErr');
+  btn.disabled = true;
+  btn.innerHTML = '<i data-lucide="loader-2" style="width:16px;height:16px;animation:spin 1s linear infinite"></i>Signing in...';
+  err.style.display = 'none';
+  lucide.createIcons();
+
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email: document.getElementById('siEmail').value.trim(),
+    password: document.getElementById('siPass').value
+  });
+
+  if (error) {
+    err.textContent = error.message;
+    err.style.display = 'block';
+    btn.disabled = false;
+    btn.innerHTML = '<i data-lucide="log-in" style="width:16px;height:16px"></i>Sign In to Admin';
+    lucide.createIcons();
+    return;
+  }
+
+  // Sign-in succeeded — onAuthStateChange will pick this up and finish initializing
+  logAction('SIGN_IN', data.user?.email || 'admin', 'Signed in to admin console');
+}
+
+async function signOut() {
+  logAction('SIGN_OUT', currentUser?.email || 'admin', 'Signed out of admin console');
+  await supabaseClient.auth.signOut();
+  currentUser = null;
+  currentProfile = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('authPage').style.display = 'flex';
+  document.getElementById('siPass').value = '';
+}
+
+// ===================== SIDEBAR =====================
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+function updateSidebar() {
+  if (!currentProfile) return;
+  const initials = (currentProfile.display_name || currentProfile.username || 'A').charAt(0).toUpperCase();
+  const sideAvatar = document.getElementById('sideAvatar');
+  if (currentProfile.profile_pic) {
+    sideAvatar.innerHTML = `<img src="${currentProfile.profile_pic}" onerror="this.parentElement.textContent='${initials}'">`;
+  } else {
+    sideAvatar.textContent = initials;
+  }
+  document.getElementById('sideName').textContent = currentProfile.display_name || 'Admin';
+  document.getElementById('sideUser').textContent = '@' + (currentProfile.username || 'admin');
+  document.getElementById('adminGreeting').textContent = currentProfile.display_name || currentProfile.username || 'Admin';
+}
+
+// ===================== ROUTING =====================
+function goTo(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const el = document.getElementById('page-' + page);
+  if (el) el.classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active-nav', b.dataset.nav === page));
+  if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+
+  // Lazy-load data per page
+  switch (page) {
+    case 'dashboard': loadDashboard(); break;
+    case 'users': loadUsers(); break;
+    case 'locations': loadUserLocations(); break;
+    case 'sites': loadSites(); break;
+    case 'posts': loadPosts(); break;
+    case 'hubs': loadHubs(); break;
+    case 'sessions': loadSessions(); break;
+    case 'tokens': loadTokensPage(); break;
+    case 'audit': renderAuditLog(); break;
+    case 'admin-chat': loadAdminChat(); break;
+    case 'settings': loadSettingsPage(); break;
+  }
+  lucide.createIcons();
+}
+
+// ===================== CHART HELPERS =====================
+const CHART_COLORS = {
+  purple: '#8b5cf6', violet: '#a78bfa', green: '#4ade80', yellow: '#fbbf24',
+  blue: '#60a5fa', red: '#f87171', pink: '#f472b6', orange: '#fb923c', gray: '#71717a', cyan: '#22d3ee'
+};
+const CHART_PALETTE = ['#8b5cf6','#4ade80','#fbbf24','#60a5fa','#f87171','#f472b6','#fb923c','#22d3ee','#a78bfa','#34d399','#facc15','#38bdf8'];
+const COMMON_CHART_OPTS = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { labels: { color: '#a1a1aa', font: { family: 'Inter', size: 11 } } },
+    tooltip: {
+      backgroundColor: 'rgba(18,18,28,.98)', titleColor: '#e4e4e7', bodyColor: '#a1a1aa',
+      borderColor: 'rgba(139,92,246,.3)', borderWidth: 1, padding: 10, cornerRadius: 8
+    }
+  },
+  scales: {
+    x: { ticks: { color: '#52525b', font: { family: 'Inter', size: 10 } }, grid: { color: 'rgba(139,92,246,.05)' } },
+    y: { ticks: { color: '#52525b', font: { family: 'Inter', size: 10 } }, grid: { color: 'rgba(139,92,246,.05)' }, beginAtZero: true }
+  }
+};
+
+function destroyChart(key) {
+  if (charts[key]) { charts[key].destroy(); delete charts[key]; }
+}
+
+function lastNDates(n) {
+  const dates = [];
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() - i);
+    dates.push(d);
+  }
+  return dates;
+}
+function dayKey(d) { return d.toISOString().slice(0, 10); }
+function shortLabel(d) { return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); }
+
+// ===================== DASHBOARD =====================
+async function loadDashboard() {
+  // KPIs
+  const [
+    { data: profiles },
+    { data: posts },
+    { data: ideas },
+    { data: liveSessions }
+  ] = await Promise.all([
+    supabaseClient.from('profiles').select('id,username,display_name,email,tokens,followers,created_at,profile_pic'),
+    supabaseClient.from('posts').select('id,created_at'),
+    supabaseClient.from('ideas').select('id,status'),
+    supabaseClient.from('site_sessions').select('id,website').eq('is_online', true)
+  ]);
+
+  document.getElementById('kpiUsers').textContent = (profiles?.length || 0).toLocaleString();
+  document.getElementById('kpiPosts').textContent = (posts?.length || 0).toLocaleString();
+  document.getElementById('kpiIdeas').textContent = (ideas?.length || 0).toLocaleString();
+  document.getElementById('kpiOnline').textContent = (liveSessions?.length || 0).toLocaleString();
+
+  // Deltas (new in last 7 days vs previous 7)
+  const now = new Date();
+  const weekAgo = new Date(now.getTime() - 7 * 86400000);
+  const twoWeeksAgo = new Date(now.getTime() - 14 * 86400000);
+  const newUsersThisWeek = (profiles || []).filter(p => new Date(p.created_at) >= weekAgo).length;
+  const newUsersLastWeek = (profiles || []).filter(p => new Date(p.created_at) >= twoWeeksAgo && new Date(p.created_at) < weekAgo).length;
+  const userDelta = newUsersLastWeek === 0 ? '+' + newUsersThisWeek + ' this week' : (newUsersThisWeek >= newUsersLastWeek ? '+' : '') + (newUsersThisWeek - newUsersLastWeek) + ' vs last week';
+  document.querySelector('#kpiUsersDelta span').textContent = userDelta;
+
+  const newPostsThisWeek = (posts || []).filter(p => new Date(p.created_at) >= weekAgo).length;
+  document.querySelector('#kpiPostsDelta span').textContent = '+' + newPostsThisWeek + ' this week';
+  document.querySelector('#kpiIdeasDelta span').textContent = '+' + (ideas?.filter(i => i.status === 'open').length || 0) + ' open';
+
+  // Chart 1: User growth (last 30 days)
+  const dates30 = lastNDates(30);
+  const userCounts = dates30.map(d => (profiles || []).filter(p => {
+    const pc = new Date(p.created_at);
+    return pc >= new Date(d.getTime()) && pc < new Date(d.getTime() + 86400000);
+  }).length);
+  destroyChart('userGrowth');
+  charts.userGrowth = new Chart(document.getElementById('chartUserGrowth'), {
+    type: 'line',
+    data: {
+      labels: dates30.map(shortLabel),
+      datasets: [{
+        label: 'New users', data: userCounts,
+        borderColor: CHART_COLORS.purple, backgroundColor: 'rgba(139,92,246,.15)',
+        fill: true, tension: .35, borderWidth: 2, pointRadius: 0, pointHoverRadius: 4
+      }]
+    },
+    options: COMMON_CHART_OPTS
+  });
+
+  // Chart 2: Posts trend
+  const postCounts = dates30.map(d => (posts || []).filter(p => {
+    const pc = new Date(p.created_at);
+    return pc >= new Date(d.getTime()) && pc < new Date(d.getTime() + 86400000);
+  }).length);
+  destroyChart('postsTrend');
+  charts.postsTrend = new Chart(document.getElementById('chartPostsTrend'), {
+    type: 'bar',
+    data: {
+      labels: dates30.map(shortLabel),
+      datasets: [{
+        label: 'Posts', data: postCounts,
+        backgroundColor: 'rgba(74,222,128,.6)', borderColor: CHART_COLORS.green, borderWidth: 1, borderRadius: 4
+      }]
+    },
+    options: COMMON_CHART_OPTS
+  });
+
+  // Chart 3: Sessions by site
+  const sessionsBySite = {};
+  (liveSessions || []).forEach(s => { sessionsBySite[s.website] = (sessionsBySite[s.website] || 0) + 1; });
+  const siteLabels = Object.keys(sessionsBySite);
+  const siteValues = Object.values(sessionsBySite);
+  destroyChart('sessionsBySite');
+  charts.sessionsBySite = new Chart(document.getElementById('chartSessionsBySite'), {
+    type: 'doughnut',
+    data: {
+      labels: siteLabels.length ? siteLabels : ['No live sessions'],
+      datasets: [{
+        data: siteValues.length ? siteValues : [1],
+        backgroundColor: CHART_PALETTE,
+        borderColor: '#18182a', borderWidth: 2
+      }]
+    },
+    options: { ...COMMON_CHART_OPTS, scales: {} }
+  });
+
+  // Chart 4: Ideas by status
+  const statusCounts = { open: 0, under_review: 0, planned: 0, implemented: 0, declined: 0 };
+  (ideas || []).forEach(i => { statusCounts[i.status] = (statusCounts[i.status] || 0) + 1; });
+  destroyChart('ideasByStatus');
+  charts.ideasByStatus = new Chart(document.getElementById('chartIdeasByStatus'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Open', 'Under Review', 'Planned', 'Implemented', 'Declined'],
+      datasets: [{
+        data: [statusCounts.open, statusCounts.under_review, statusCounts.planned, statusCounts.implemented, statusCounts.declined],
+        backgroundColor: [CHART_COLORS.blue, CHART_COLORS.yellow, CHART_COLORS.purple, CHART_COLORS.green, CHART_COLORS.red],
+        borderColor: '#18182a', borderWidth: 2
+      }]
+    },
+    options: { ...COMMON_CHART_OPTS, scales: {} }
+  });
+
+  // Chart 5: Top users by tokens
+  const topUsers = [...(profiles || [])].sort((a, b) => (b.tokens || 0) - (a.tokens || 0)).slice(0, 10);
+  destroyChart('topTokens');
+  charts.topTokens = new Chart(document.getElementById('chartTopTokens'), {
+    type: 'bar',
+    data: {
+      labels: topUsers.map(u => u.username || u.display_name || 'Unknown'),
+      datasets: [{
+        label: 'Tokens', data: topUsers.map(u => u.tokens || 0),
+        backgroundColor: 'rgba(251,191,36,.6)', borderColor: CHART_COLORS.yellow, borderWidth: 1, borderRadius: 4
+      }]
+    },
+    options: {
+      ...COMMON_CHART_OPTS,
+      indexAxis: 'y',
+      scales: {
+        x: { ticks: { color: '#52525b' }, grid: { color: 'rgba(139,92,246,.05)' }, beginAtZero: true },
+        y: { ticks: { color: '#a1a1aa', font: { family: 'Inter', size: 11 } }, grid: { display: false } }
+      }
+    }
+  });
+
+  // Recent signups
+  const recentUsers = [...(profiles || [])].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 8);
+  const recentHtml = recentUsers.length ? recentUsers.map(u => {
+    const initials = (u.display_name || u.username || 'U').charAt(0).toUpperCase();
+    const avatarHtml = u.profile_pic
+      ? `<img src="${u.profile_pic}" onerror="this.parentElement.textContent='${initials}'">`
+      : initials;
+    return `<div style="display:flex;align-items:center;gap:.65rem;padding:.55rem .65rem;border-radius:.55rem;background:rgba(139,92,246,.04);border:1px solid rgba(139,92,246,.06)">
+      <div class="avatar avatar-sm" style="overflow:hidden">${avatarHtml}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.82rem;font-weight:600;color:#e4e4e7;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(u.display_name || u.username || 'Unknown')}</div>
+        <div style="font-size:.7rem;color:#52525b">@${escHtml(u.username || 'user')}</div>
+      </div>
+      <span style="font-size:.68rem;color:#52525b;white-space:nowrap">${getTimeAgo(u.created_at)}</span>
+    </div>`;
+  }).join('') : '<div class="empty-state" style="padding:1rem">No users yet</div>';
+  document.getElementById('recentSignups').innerHTML = recentHtml;
+
+  lucide.createIcons();
+}
+
+// ===================== USERS PAGE =====================
+let usersDebounce;
+function debouncedLoadUsers() {
+  clearTimeout(usersDebounce);
+  usersDebounce = setTimeout(loadUsers, 300);
+}
+
+async function loadUsers() {
+  const tbody = document.getElementById('usersTableBody');
+  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem"><div class="spinner"></div>Loading users...</td></tr>';
+
+  const search = document.getElementById('userSearchInput').value.trim();
+  const sort = document.getElementById('userSortSelect').value;
+  const filter = document.getElementById('userFilterSelect').value;
+
+  let query = supabaseClient.from('profiles').select('id,username,display_name,email,tokens,followers,following,profile_pic,bio,peer_id,created_at,website,location');
+  if (search) {
+    query = query.or(`username.ilike.%${search}%,display_name.ilike.%${search}%,email.ilike.%${search}%`);
+  }
+  switch (sort) {
+    case 'oldest': query = query.order('created_at', { ascending: true }); break;
+    case 'tokens': query = query.order('tokens', { ascending: false }); break;
+    case 'followers': query = query.order('followers', { ascending: false }); break;
+    case 'posts': /* handled client-side below */ query = query.order('created_at', { ascending: false }); break;
+    default: query = query.order('created_at', { ascending: false });
+  }
+  query = query.limit(500);
+
+  const { data: users, error } = await query;
+  if (error) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:#f87171">Failed to load users: ${escHtml(error.message)}</td></tr>`;
+    return;
+  }
+
+  // Online users (peer_id present)
+  const { data: onlineSessions } = await supabaseClient.from('site_sessions').select('user_id').eq('is_online', true);
+  const onlineUserIds = new Set((onlineSessions || []).map(s => s.user_id).filter(Boolean));
+
+  // Post counts per user
+  const { data: postCounts } = await supabaseClient.from('posts').select('user_id');
+  const postCountMap = {};
+  (postCounts || []).forEach(p => { postCountMap[p.user_id] = (postCountMap[p.user_id] || 0) + 1; });
+
+  usersCache = users || [];
+
+  // Apply filters
+  let filtered = usersCache;
+  if (filter === 'online') filtered = filtered.filter(u => onlineUserIds.has(u.id));
+  if (filter === 'with_posts') filtered = filtered.filter(u => (postCountMap[u.id] || 0) > 0);
+  if (filter === 'no_bio') filtered = filtered.filter(u => !u.bio || !u.bio.trim());
+
+  if (sort === 'posts') filtered = [...filtered].sort((a, b) => (postCountMap[b.id] || 0) - (postCountMap[a.id] || 0));
+
+  document.getElementById('usersCountTag').textContent = filtered.length + ' users';
+
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No users match your filters</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(u => {
+    const initials = (u.display_name || u.username || 'U').charAt(0).toUpperCase();
+    const avatarHtml = u.profile_pic
+      ? `<img src="${u.profile_pic}" onerror="this.parentElement.textContent='${initials}'">`
+      : initials;
+    const isOnline = onlineUserIds.has(u.id);
+    return `<tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:.6rem">
+          <div class="avatar avatar-sm" style="overflow:hidden">${avatarHtml}</div>
+          <div style="min-width:0">
+            <div style="font-weight:600;color:#e4e4e7;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px">${escHtml(u.display_name || 'Unknown')}</div>
+            <div style="font-size:.7rem;color:#52525b">@${escHtml(u.username || 'user')}</div>
+          </div>
+        </div>
+      </td>
+      <td class="muted" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(u.email || '—')}</td>
+      <td><span class="tag tag-yellow">${(u.tokens || 0).toLocaleString()}</span></td>
+      <td>${u.followers ? u.followers.length : 0}</td>
+      <td>${postCountMap[u.id] || 0}</td>
+      <td>${isOnline ? '<span class="tag tag-green"><span class="pulse-dot" style="display:inline-block;margin-right:.2rem"></span>Online</span>' : '<span class="tag tag-gray">Offline</span>'}</td>
+      <td class="muted" style="white-space:nowrap">${getTimeAgo(u.created_at)}</td>
+      <td>
+        <button class="btn-ghost btn-sm" onclick="openUserModal('${u.id}')" style="padding:.35rem .6rem"><i data-lucide="eye" style="width:13px;height:13px"></i></button>
+        <button class="btn-ghost btn-sm" onclick="adjustTokens('${u.id}')" style="padding:.35rem .6rem" title="Adjust tokens"><i data-lucide="coins" style="width:13px;height:13px"></i></button>
+      </td>
+    </tr>`;
+  }).join('');
+  lucide.createIcons();
+}
+
+async function openUserModal(userId) {
+  const user = usersCache.find(u => u.id === userId);
+  if (!user) return;
+  const content = document.getElementById('userModalContent');
+
+  // Get user's posts, ideas, hub memberships
+  const [{ data: userPosts }, { data: userIdeas }, { data: userHubs }] = await Promise.all([
+    supabaseClient.from('posts').select('id,title,created_at,likes').eq('user_id', userId).order('created_at', { ascending: false }).limit(10),
+    supabaseClient.from('ideas').select('id,title,status,created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(10),
+    supabaseClient.from('innovator_hub_members').select('hub_id,hub:innovator_hubs(name)').eq('user_id', userId)
+  ]);
+
+  const initials = (user.display_name || user.username || 'U').charAt(0).toUpperCase();
+  const avatarHtml = user.profile_pic
+    ? `<div class="avatar avatar-lg" style="overflow:hidden"><img src="${user.profile_pic}" onerror="this.parentElement.textContent='${initials}'"></div>`
+    : `<div class="avatar avatar-lg">${initials}</div>`;
+
+  content.innerHTML = `
+    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem">
+      ${avatarHtml}
+      <div style="flex:1;min-width:0">
+        <h3 style="font-size:1.2rem;font-weight:800;color:#e4e4e7">${escHtml(user.display_name || 'Unknown')}</h3>
+        <p style="font-size:.82rem;color:#71717a">@${escHtml(user.username || 'user')}</p>
+        <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem">
+          <span class="tag tag-yellow">${(user.tokens || 0).toLocaleString()} tokens</span>
+          <span class="tag">${user.followers?.length || 0} followers</span>
+          <span class="tag">${user.following?.length || 0} following</span>
+          <span class="tag">${userPosts?.length || 0} posts</span>
+          <span class="tag">${userIdeas?.length || 0} ideas</span>
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem;font-size:.82rem">
+      <div><div style="font-size:.7rem;color:#52525b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.2rem">Email</div><div style="color:#d4d4d8;word-break:break-all">${escHtml(user.email || '—')}</div></div>
+      <div><div style="font-size:.7rem;color:#52525b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.2rem">Location</div><div style="color:#d4d4d8">${escHtml(user.location || '—')}</div></div>
+      <div><div style="font-size:.7rem;color:#52525b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.2rem">Website</div><div style="color:#d4d4d8;word-break:break-all">${escHtml(user.website || '—')}</div></div>
+      <div><div style="font-size:.7rem;color:#52525b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.2rem">Joined</div><div style="color:#d4d4d8">${formatDate(user.created_at)}</div></div>
+    </div>
+    ${user.bio ? `<div style="background:rgba(139,92,246,.05);border:1px solid rgba(139,92,246,.08);border-radius:.6rem;padding:.75rem 1rem;margin-bottom:1rem"><div style="font-size:.7rem;color:#52525b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.25rem">Bio</div><div style="font-size:.84rem;color:#d4d4d8;line-height:1.55">${escHtml(user.bio)}</div></div>` : ''}
+    ${user.peer_id ? `<div style="font-size:.72rem;color:#52525b;margin-bottom:1rem">Peer ID: <code style="background:rgba(139,92,246,.08);padding:.1rem .35rem;border-radius:.3rem;color:#a78bfa">${escHtml(user.peer_id)}</code></div>` : ''}
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1rem;border-top:1px solid rgba(139,92,246,.08);padding-top:1rem">
+      <button class="btn-outline btn-sm" onclick="adjustTokens('${user.id}')"><i data-lucide="coins" style="width:13px;height:13px"></i>Adjust Tokens</button>
+      ${user.website ? `<a class="btn-outline btn-sm" href="${escHtml(user.website)}" target="_blank" rel="noopener"><i data-lucide="external-link" style="width:13px;height:13px"></i>Website</a>` : ''}
+    </div>
+  `;
+  document.getElementById('userModal').classList.add('active');
+  lucide.createIcons();
+}
+function closeUserModal() { document.getElementById('userModal').classList.remove('active'); }
+
+async function adjustTokens(userId) {
+  const user = usersCache.find(u => u.id === userId);
+  if (!user) return;
+  const input = prompt(`Adjust tokens for @${user.username || 'user'}.\nCurrent balance: ${user.tokens || 0}\n\nEnter new total (or use +100 / -50 for relative):`);
+  if (input === null) return;
+  const trimmed = input.trim();
+  if (!trimmed) return;
+  let newTotal = user.tokens || 0;
+  if (trimmed.startsWith('+')) newTotal = (user.tokens || 0) + parseInt(trimmed.slice(1), 10);
+  else if (trimmed.startsWith('-')) newTotal = Math.max(0, (user.tokens || 0) - parseInt(trimmed.slice(1), 10));
+  else newTotal = parseInt(trimmed, 10);
+  if (isNaN(newTotal)) { toast('Invalid number', 'error'); return; }
+  const { error } = await supabaseClient.from('profiles').update({ tokens: newTotal }).eq('id', userId);
+  if (error) { toast('Failed: ' + error.message, 'error'); return; }
+  user.tokens = newTotal;
+  logAction('ADJUST_TOKENS', user.username || user.email, `Set to ${newTotal} (was ${user.tokens || 0})`);
+  toast(`Tokens updated to ${newTotal.toLocaleString()}`, 'success');
+  loadUsers();
+  closeUserModal();
+}
+
+// ===================== USER LOCATIONS MAP =====================
+const LOCATION_COUNTRIES = [
+  ['United States', 39.5, -98.35, ['usa', 'us', 'united states of america', 'america', 'new york', 'los angeles', 'chicago', 'san francisco']],
+  ['Canada', 56.1, -106.3, ['canada', 'ca', 'toronto', 'vancouver', 'montreal']],
+  ['United Kingdom', 55.4, -3.4, ['uk', 'gb', 'great britain', 'england', 'scotland', 'wales', 'northern ireland', 'london', 'manchester']],
+  ['Ireland', 53.1, -8.0, ['ireland', 'dublin']],
+  ['France', 46.2, 2.2, ['france', 'paris']],
+  ['Germany', 51.2, 10.4, ['germany', 'deutschland', 'berlin']],
+  ['Spain', 40.4, -3.7, ['spain', 'españa', 'madrid']],
+  ['Portugal', 39.4, -8.2, ['portugal', 'lisbon']],
+  ['Italy', 41.9, 12.6, ['italy', 'italia', 'rome']],
+  ['Netherlands', 52.1, 5.3, ['netherlands', 'the netherlands', 'holland', 'amsterdam']],
+  ['Belgium', 50.5, 4.5, ['belgium', 'brussels']],
+  ['Switzerland', 46.8, 8.2, ['switzerland', 'zurich']],
+  ['Austria', 47.5, 14.6, ['austria', 'vienna']],
+  ['Sweden', 60.1, 18.6, ['sweden', 'stockholm']],
+  ['Norway', 60.5, 8.5, ['norway', 'oslo']],
+  ['Denmark', 56.3, 9.5, ['denmark', 'copenhagen']],
+  ['Finland', 64.0, 26.0, ['finland', 'helsinki']],
+  ['Poland', 52.0, 19.1, ['poland', 'warsaw']],
+  ['Ukraine', 48.4, 31.2, ['ukraine', 'kyiv']],
+  ['Greece', 39.1, 21.8, ['greece', 'athens']],
+  ['Turkey', 39.0, 35.2, ['turkey', 'türkiye', 'istanbul']],
+  ['Russia', 61.5, 105.3, ['russia', 'россия', 'moscow']],
+  ['China', 35.9, 104.2, ['china', '中国', 'beijing', 'shanghai']],
+  ['Japan', 36.2, 138.3, ['japan', '日本', 'tokyo']],
+  ['South Korea', 36.0, 127.8, ['south korea', 'korea', '대한민국', 'seoul']],
+  ['India', 20.6, 78.9, ['india', 'bharat', 'भारत', 'mumbai', 'delhi', 'bengaluru']],
+  ['Pakistan', 30.4, 69.3, ['pakistan', 'اسلام آباد', 'karachi']],
+  ['Bangladesh', 23.7, 90.4, ['bangladesh', 'dhaka']],
+  ['Sri Lanka', 7.9, 80.7, ['sri lanka', 'colombo']],
+  ['Nepal', 28.4, 84.1, ['nepal', 'kathmandu']],
+  ['Indonesia', -2.5, 118.0, ['indonesia', 'jakarta']],
+  ['Malaysia', 4.2, 102.0, ['malaysia', 'kuala lumpur']],
+  ['Singapore', 1.35, 103.8, ['singapore']],
+  ['Thailand', 15.9, 101.0, ['thailand', 'bangkok']],
+  ['Vietnam', 16.0, 108.3, ['vietnam', 'việt nam', 'hanoi']],
+  ['Philippines', 12.9, 121.8, ['philippines', 'manila']],
+  ['Australia', -25.3, 133.8, ['australia', 'sydney', 'melbourne']],
+  ['New Zealand', -40.9, 174.9, ['new zealand', 'auckland']],
+  ['Brazil', -10.8, -52.9, ['brazil', 'brasil', 'são paulo']],
+  ['Mexico', 23.6, -102.5, ['mexico', 'méxico', 'mexico city']],
+  ['Argentina', -38.4, -63.6, ['argentina', 'buenos aires']],
+  ['Chile', -35.7, -71.5, ['chile', 'santiago']],
+  ['Colombia', 4.6, -74.1, ['colombia', 'bogota']],
+  ['Peru', -9.2, -75.0, ['peru', 'perú', 'lima']],
+  ['South Africa', -30.6, 22.9, ['south africa', 'cape town', 'johannesburg']],
+  ['Nigeria', 9.1, 8.7, ['nigeria', 'lagos']],
+  ['Kenya', 0.0, 37.9, ['kenya', 'nairobi']],
+  ['Egypt', 26.8, 30.8, ['egypt', 'cairo']],
+  ['Morocco', 31.8, -7.1, ['morocco', 'rabat']],
+  ['United Arab Emirates', 23.4, 53.8, ['uae', 'united arab emirates', 'dubai']],
+  ['Saudi Arabia', 23.9, 45.1, ['saudi arabia', 'riyadh']],
+  ['Israel', 31.0, 34.9, ['israel', 'tel aviv']],
+  ['Iran', 32.4, 53.7, ['iran', 'tehran']],
+  ['Iraq', 33.2, 43.7, ['iraq', 'baghdad']],
+  ['Afghanistan', 33.9, 67.7, ['afghanistan', 'kabul']],
+  ['Jamaica', 18.1, -77.3, ['jamaica', 'kingston']],
+  ['Cuba', 21.5, -78.0, ['cuba', 'havana']],
+  ['Costa Rica', 9.9, -84.2, ['costa rica', 'san josé']],
+  ['Panama', 8.5, -80.8, ['panama', 'panama city']],
+  ['Ecuador', -1.8, -78.2, ['ecuador', 'quito']],
+  ['Venezuela', 6.4, -66.6, ['venezuela', 'caracas']]
+];
+let userLocationsMap = null;
+let userLocationMarkers = null;
+
+function countryForLocation(location) {
+  const normalized = String(location || '').trim().toLowerCase().replace(/[.]/g, '');
+  if (!normalized) return null;
+  const parts = normalized.split(/[,/|;]/).map(part => part.trim()).filter(Boolean);
+  for (const country of LOCATION_COUNTRIES) {
+    const [name, , , aliases] = country;
+    const terms = [name.toLowerCase(), ...aliases];
+    if (parts.some(part => terms.includes(part)) || terms.some(term => term.length > 3 && normalized.includes(term))) return country;
+  }
+  return null;
+}
+
+async function loadUserLocations() {
+  const table = document.getElementById('locationCountryTable');
+  table.innerHTML = '<tr><td colspan="2" class="empty-state"><div class="spinner"></div>Loading locations...</td></tr>';
+  if (!userLocationsMap) {
+    userLocationsMap = L.map('userLocationsMap').setView([20, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 18
+    }).addTo(userLocationsMap);
+    userLocationMarkers = L.layerGroup().addTo(userLocationsMap);
+  }
+  setTimeout(() => userLocationsMap.invalidateSize(), 0);
+
+  const { data: profiles, error } = await supabaseClient.from('profiles').select('id,username,display_name,location');
+  if (error) {
+    table.innerHTML = `<tr><td colspan="2" style="color:#f87171;padding:1rem">Could not load locations: ${escHtml(error.message)}</td></tr>`;
+    return;
+  }
+
+  const counts = new Map();
+  const unmapped = new Map();
+  (profiles || []).forEach(profile => {
+    const location = String(profile.location || '').trim();
+    const country = countryForLocation(location);
+    if (country) {
+      const [name, lat, lng] = country;
+      const current = counts.get(name) || { name, lat, lng, users: 0 };
+      current.users++;
+      counts.set(name, current);
+    } else if (location) {
+      unmapped.set(location, (unmapped.get(location) || 0) + 1);
+    }
+  });
+
+  const countries = [...counts.values()].sort((a, b) => b.users - a.users || a.name.localeCompare(b.name));
+  const locatedUsers = countries.reduce((sum, country) => sum + country.users, 0);
+  document.getElementById('locationUserCount').textContent = `${locatedUsers.toLocaleString()} users located`;
+  document.getElementById('locationCountryCount').textContent = `${countries.length} countries`;
+  userLocationMarkers.clearLayers();
+  countries.forEach(country => {
+    const marker = L.circleMarker([country.lat, country.lng], {
+      radius: Math.min(10 + Math.sqrt(country.users) * 4, 30),
+      color: '#c4b5fd', weight: 2, fillColor: '#8b5cf6', fillOpacity: 0.75
+    });
+    marker.bindTooltip(`${escHtml(country.name)}: ${country.users} user${country.users === 1 ? '' : 's'}`);
+    marker.bindPopup(`<strong>${escHtml(country.name)}</strong><br>${country.users.toLocaleString()} user${country.users === 1 ? '' : 's'}`);
+    marker.addTo(userLocationMarkers);
+  });
+
+  table.innerHTML = countries.length ? countries.map(country => `
+    <tr><td>${escHtml(country.name)}</td><td><span class="tag tag-blue">${country.users.toLocaleString()}</span></td></tr>
+  `).join('') : '<tr><td colspan="2" class="empty-state">No recognized country locations found</td></tr>';
+
+  const unmappedRows = [...unmapped.entries()].sort((a, b) => b[1] - a[1]);
+  document.getElementById('unmappedLocations').innerHTML = unmappedRows.length
+    ? `<strong style="color:#a1a1aa">Unmapped location values</strong><br>${unmappedRows.slice(0, 12).map(([location, count]) => `${escHtml(location)} (${count})`).join(' · ')}${unmappedRows.length > 12 ? ' · …' : ''}`
+    : (profiles || []).some(profile => !String(profile.location || '').trim())
+      ? 'Some profiles do not have a location set.'
+      : '';
+  lucide.createIcons();
+}
+
+// ===================== SITES PAGE =====================
+async function loadSites() {
+  document.getElementById('mainSitesGrid').innerHTML = '<div class="empty-state"><div class="spinner"></div>Loading...</div>';
+  document.getElementById('commSitesGrid').innerHTML = '<div class="empty-state"><div class="spinner"></div>Loading...</div>';
+
+  // Render main sites
+  document.getElementById('kpiMainSites').textContent = epsilonSites.length;
+  document.getElementById('mainSitesGrid').innerHTML = epsilonSites.map(s => `
+    <div class="card" style="padding:1.15rem">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;margin-bottom:.6rem">
+        <h3 style="font-size:1rem;font-weight:700;color:#e4e4e7">${escHtml(s.name)}</h3>
+        <span class="tag tag-blue">${escHtml(s.theme)}</span>
+      </div>
+      <p style="font-size:.8rem;color:#a1a1aa;line-height:1.55;margin-bottom:.85rem">${escHtml(s.desc)}</p>
+      <a href="${escHtml(s.url)}" target="_blank" rel="noopener" class="btn-outline btn-sm" style="text-decoration:none;display:inline-flex"><i data-lucide="external-link" style="width:13px;height:13px"></i>Visit</a>
+    </div>
+  `).join('');
+
+  // Load community sites
+  const { data: sites, error } = await supabaseClient.from('comm_sites')
+    .select('id,name,description,goal,members,link,landing_page_link,social_links,rating,theme,colors,created_at,user_id,profiles:profiles!comm_sites_user_id_fkey(username,display_name)')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    document.getElementById('commSitesGrid').innerHTML = `<div class="empty-state" style="color:#f87171">Error: ${escHtml(error.message)}</div>`;
+    return;
+  }
+
+  document.getElementById('kpiCommSites').textContent = (sites || []).length;
+  const avgRating = sites && sites.length ? (sites.reduce((s, x) => s + (Number(x.rating) || 0), 0) / sites.length).toFixed(2) : '0.0';
+  document.getElementById('kpiAvgRating').textContent = avgRating;
+  const totalMembers = sites ? sites.reduce((s, x) => s + (Number(x.members) || 0), 0) : 0;
+  document.getElementById('kpiTotalMembers').textContent = totalMembers.toLocaleString();
+
+  if (!sites || !sites.length) {
+    document.getElementById('commSitesGrid').innerHTML = '<div class="empty-state" style="grid-column:1/-1">No community sites submitted yet</div>';
+    lucide.createIcons();
+    return;
+  }
+
+  document.getElementById('commSitesGrid').innerHTML = sites.map(site => {
+    const uploader = site.profiles || {};
+    const colors = Array.isArray(site.colors) ? site.colors : [];
+    const safeColors = colors.length ? colors.map(c => /^#[0-9a-f]{6}$/i.test(c) ? c : '#8b5cf6') : ['#8b5cf6'];
+    return `<div class="card" style="padding:1.15rem">
+      <div style="height:6px;border-radius:999px;margin-bottom:.85rem;background:linear-gradient(90deg,${safeColors.join(',')})"></div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem">
+        <h3 style="font-size:1rem;font-weight:700;color:#e4e4e7;overflow-wrap:anywhere">${escHtml(site.name)}</h3>
+        <span class="tag">${escHtml(site.theme)}</span>
+      </div>
+      <p style="font-size:.78rem;color:#a1a1aa;line-height:1.55;margin-top:.55rem">${escHtml(site.description)}</p>
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.75rem;font-size:.74rem;color:#a1a1aa">
+        <span>${Number(site.members) || 0} members</span>
+        <span>★ ${Number(site.rating).toFixed(1)}/5</span>
+      </div>
+      <p style="font-size:.7rem;color:#52525b;margin-top:.55rem">By ${escHtml(uploader.display_name || uploader.username || 'Community')}${uploader.username ? ' (@' + escHtml(uploader.username) + ')' : ''} · ${getTimeAgo(site.created_at)}</p>
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.75rem">
+        ${site.link ? `<a href="${escHtml(site.link)}" target="_blank" rel="noopener" class="btn-primary btn-sm" style="text-decoration:none"><i data-lucide="external-link" style="width:12px;height:12px"></i>Visit</a>` : ''}
+        <button class="btn-danger btn-sm" onclick="deleteCommunitySite('${site.id}','${escHtml(site.name).replace(/'/g, "\\'")}')"><i data-lucide="trash-2" style="width:12px;height:12px"></i>Remove</button>
+      </div>
+    </div>`;
+  }).join('');
+  lucide.createIcons();
+}
+
+async function deleteCommunitySite(siteId, name) {
+  if (!confirm(`Remove community site "${name}"? This cannot be undone.`)) return;
+  const { error } = await supabaseClient.from('comm_sites').delete().eq('id', siteId);
+  if (error) { toast('Failed: ' + error.message, 'error'); return; }
+  logAction('DELETE_SITE', name, `Site ID: ${siteId}`);
+  toast('Site removed', 'success');
+  loadSites();
+}
+
+// ===================== POSTS PAGE =====================
+let postsDebounce;
+function debouncedLoadPosts() { clearTimeout(postsDebounce); postsDebounce = setTimeout(loadPosts, 300); }
+
+async function loadPosts() {
+  const tbody = document.getElementById('postsTableBody');
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem"><div class="spinner"></div>Loading posts...</td></tr>';
+
+  const search = document.getElementById('postSearchInput').value.trim();
+  const cat = document.getElementById('postCatFilter').value;
+  const sort = document.getElementById('postSortFilter').value;
+
+  let query = supabaseClient.from('posts').select('id,title,content,category,likes,created_at,user_id,profiles:profiles!posts_user_id_fkey(username,display_name,profile_pic)');
+  if (cat !== 'all') query = query.eq('category', cat);
+  if (search) query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%`);
+  switch (sort) {
+    case 'oldest': query = query.order('created_at', { ascending: true }); break;
+    case 'most_liked': query = query.order('likes', { ascending: false }); break;
+    default: query = query.order('created_at', { ascending: false });
+  }
+  query = query.limit(300);
+
+  const { data: posts, error } = await query;
+  if (error) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;color:#f87171">Error: ${escHtml(error.message)}</td></tr>`;
+    return;
+  }
+  document.getElementById('postsCountTag').textContent = (posts || []).length + ' posts';
+  if (!posts || !posts.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No posts found</td></tr>';
+    return;
+  }
+  tbody.innerHTML = posts.map(p => {
+    const author = p.profiles || {};
+    const initials = (author.display_name || author.username || 'U').charAt(0).toUpperCase();
+    const avatarHtml = author.profile_pic
+      ? `<img src="${author.profile_pic}" onerror="this.parentElement.textContent='${initials}'">`
+      : initials;
+    return `<tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <div class="avatar avatar-sm" style="overflow:hidden">${avatarHtml}</div>
+          <div>
+            <div style="font-weight:600;color:#e4e4e7;font-size:.8rem">${escHtml(author.display_name || 'Unknown')}</div>
+            <div style="font-size:.7rem;color:#52525b">@${escHtml(author.username || 'user')}</div>
+          </div>
+        </div>
+      </td>
+      <td>
+        <div style="font-weight:600;color:#e4e4e7">${escHtml(truncate(p.title, 50))}</div>
+        <div style="font-size:.72rem;color:#52525b;margin-top:.15rem;max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(truncate(p.content, 80))}</div>
+      </td>
+      <td><span class="tag tag-blue">${escHtml(p.category)}</span></td>
+      <td><span class="tag tag-green">${p.likes || 0}</span></td>
+      <td class="muted" style="white-space:nowrap">${getTimeAgo(p.created_at)}</td>
+      <td>
+        <button class="btn-ghost btn-sm" onclick="viewPostContent('${p.id}')" style="padding:.35rem .6rem" title="View"><i data-lucide="eye" style="width:13px;height:13px"></i></button>
+        <button class="btn-danger btn-sm" onclick="deletePost('${p.id}')" style="padding:.35rem .6rem" title="Delete"><i data-lucide="trash-2" style="width:13px;height:13px"></i></button>
+      </td>
+    </tr>`;
+  }).join('');
+  lucide.createIcons();
+}
+
+async function deletePost(postId) {
+  if (!confirm('Delete this post permanently?')) return;
+  const { error } = await supabaseClient.from('posts').delete().eq('id', postId);
+  if (error) { toast('Failed: ' + error.message, 'error'); return; }
+  logAction('DELETE_POST', postId, 'Post removed by admin');
+  toast('Post deleted', 'success');
+  loadPosts();
+}
+
+function viewPostContent(postId) {
+  // Re-fetch the single post and show alert with full content
+  supabaseClient.from('posts').select('title,content,category,likes,created_at,profiles:profiles!posts_user_id_fkey(username,display_name)').eq('id', postId).single().then(({ data }) => {
+    if (!data) return;
+    const author = data.profiles || {};
+    alert(`Post by @${author.username || 'user'}\n\nTitle: ${data.title}\nCategory: ${data.category}\nLikes: ${data.likes || 0}\nPosted: ${formatDate(data.created_at)}\n\n---\n\n${data.content}`);
+  });
+}
+
+// ===================== IDEAS PAGE =====================
+let ideasDebounce;
+function debouncedLoadIdeas() { clearTimeout(ideasDebounce); ideasDebounce = setTimeout(loadIdeas, 300); }
+
+async function loadIdeas() {
+  const tbody = document.getElementById('ideasTableBody');
+  tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem"><div class="spinner"></div>Loading ideas...</td></tr>';
+
+  const search = document.getElementById('ideaSearchInput').value.trim();
+  const status = document.getElementById('ideaStatusFilter').value;
+  const cat = document.getElementById('ideaCatFilter').value;
+
+  let query = supabaseClient.from('ideas').select('id,title,description,site_target,category,status,likes,reply_count,views,helpfulness_rating,created_at,user_id,profiles:profiles!ideas_user_id_fkey(username,display_name,profile_pic)');
+  if (status !== 'all') query = query.eq('status', status);
+  if (cat !== 'all') query = query.eq('category', cat);
+  if (search) query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
+  query = query.order('created_at', { ascending: false }).limit(300);
+
+  const { data: ideas, error } = await query;
+  if (error) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:2rem;color:#f87171">Error: ${escHtml(error.message)}</td></tr>`;
+    return;
+  }
+  ideasCache = ideas || [];
+  document.getElementById('ideasCountTag').textContent = ideasCache.length + ' ideas';
+  if (!ideasCache.length) {
+    tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No ideas found</td></tr>';
+    return;
+  }
+  const statusColors = { open: 'tag-blue', under_review: 'tag-yellow', planned: 'tag', implemented: 'tag-green', declined: 'tag-red' };
+  tbody.innerHTML = ideasCache.map(i => {
+    const author = i.profiles || {};
+    return `<tr>
+      <td style="max-width:240px"><div style="font-weight:600;color:#e4e4e7">${escHtml(truncate(i.title, 50))}</div></td>
+      <td class="muted">${escHtml(author.display_name || author.username || 'Unknown')}</td>
+      <td><span class="tag">${escHtml(i.category)}</span></td>
+      <td class="muted">${escHtml(i.site_target)}</td>
+      <td><span class="tag ${statusColors[i.status] || 'tag-gray'}">${escHtml(i.status.replace('_', ' '))}</span></td>
+      <td>${i.likes || 0}</td>
+      <td>${i.reply_count || 0}</td>
+      <td class="muted" style="white-space:nowrap">${getTimeAgo(i.created_at)}</td>
+      <td>
+        <button class="btn-ghost btn-sm" onclick="viewIdeaDetail('${i.id}')" style="padding:.35rem .6rem"><i data-lucide="eye" style="width:13px;height:13px"></i></button>
+        <select onchange="updateIdeaStatus('${i.id}', this.value)" class="filter-select" style="min-width:auto;padding:.3rem 1.5rem .3rem .5rem;font-size:.7rem">
+          <option value="" disabled selected>Set…</option>
+          <option value="open">Open</option>
+          <option value="under_review">Under Review</option>
+          <option value="planned">Planned</option>
+          <option value="implemented">Implemented</option>
+          <option value="declined">Declined</option>
+        </select>
+      </td>
+    </tr>`;
+  }).join('');
+  lucide.createIcons();
+}
+
+async function updateIdeaStatus(ideaId, newStatus) {
+  const idea = ideasCache.find(i => i.id === ideaId);
+  const { error } = await supabaseClient.from('ideas').update({ status: newStatus }).eq('id', ideaId);
+  if (error) { toast('Failed: ' + error.message, 'error'); loadIdeas(); return; }
+  logAction('UPDATE_IDEA_STATUS', idea?.title || ideaId, `Status → ${newStatus}`);
+  toast(`Idea marked as ${newStatus.replace('_', ' ')}`, 'success');
+  loadIdeas();
+}
+
+async function viewIdeaDetail(ideaId) {
+  const idea = ideasCache.find(i => i.id === ideaId);
+  if (!idea) return;
+  const author = idea.profiles || {};
+  const { data: replies } = await supabaseClient.from('idea_replies')
+    .select('content,created_at,profiles:user_id(username,display_name,profile_pic)')
+    .eq('idea_id', ideaId).order('created_at', { ascending: true });
+  const statusColors = { open: 'tag-blue', under_review: 'tag-yellow', planned: 'tag', implemented: 'tag-green', declined: 'tag-red' };
+  document.getElementById('ideaModalContent').innerHTML = `
+    <div style="margin-bottom:.85rem">
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.6rem">
+        <span class="tag ${statusColors[idea.status]}">${escHtml(idea.status.replace('_', ' '))}</span>
+        <span class="tag">${escHtml(idea.category)}</span>
+        <span class="tag tag-blue">${escHtml(idea.site_target)}</span>
+      </div>
+      <h3 style="font-size:1.15rem;font-weight:800;color:#e4e4e7;line-height:1.3;margin-bottom:.5rem">${escHtml(idea.title)}</h3>
+      <div style="font-size:.78rem;color:#71717a">By ${escHtml(author.display_name || author.username || 'Unknown')} · ${getTimeAgo(idea.created_at)}</div>
+    </div>
+    <div style="font-size:.86rem;color:#a1a1aa;line-height:1.7;white-space:pre-wrap;background:rgba(139,92,246,.04);border:1px solid rgba(139,92,246,.08);border-radius:.6rem;padding:.85rem 1rem;margin-bottom:.85rem">${escHtml(idea.description)}</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-bottom:1rem">
+      <div style="background:rgba(139,92,246,.04);border-radius:.5rem;padding:.55rem;text-align:center"><div style="font-size:1.1rem;font-weight:700;color:#a78bfa">${idea.likes || 0}</div><div style="font-size:.65rem;color:#52525b;text-transform:uppercase">Likes</div></div>
+      <div style="background:rgba(74,222,128,.04);border-radius:.5rem;padding:.55rem;text-align:center"><div style="font-size:1.1rem;font-weight:700;color:#4ade80">${idea.reply_count || 0}</div><div style="font-size:.65rem;color:#52525b;text-transform:uppercase">Replies</div></div>
+      <div style="background:rgba(96,165,250,.04);border-radius:.5rem;padding:.55rem;text-align:center"><div style="font-size:1.1rem;font-weight:700;color:#60a5fa">${idea.views || 0}</div><div style="font-size:.65rem;color:#52525b;text-transform:uppercase">Views</div></div>
+      <div style="background:rgba(251,191,36,.04);border-radius:.5rem;padding:.55rem;text-align:center"><div style="font-size:1.1rem;font-weight:700;color:#fbbf24">${idea.helpfulness_rating || 0}/10</div><div style="font-size:.65rem;color:#52525b;text-transform:uppercase">Rating</div></div>
+    </div>
+    ${replies && replies.length ? `
+      <h4 style="font-size:.85rem;font-weight:700;color:#e4e4e7;margin-bottom:.6rem">Replies (${replies.length})</h4>
+      <div style="display:flex;flex-direction:column;gap:.5rem;max-height:200px;overflow-y:auto">
+        ${replies.map(r => {
+          const rp = r.profiles || {};
+          const initials = (rp.display_name || rp.username || 'U').charAt(0).toUpperCase();
+          const av = rp.profile_pic ? `<img src="${rp.profile_pic}" onerror="this.parentElement.textContent='${initials}'">` : initials;
+          return `<div style="background:rgba(15,15,25,.5);border:1px solid rgba(139,92,246,.06);border-radius:.55rem;padding:.65rem .85rem">
+            <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem"><div class="avatar" style="width:22px;height:22px;font-size:.55rem;overflow:hidden">${av}</div><strong style="font-size:.74rem;color:#e4e4e7">${escHtml(rp.display_name || rp.username || 'Unknown')}</strong><span style="font-size:.65rem;color:#52525b">· ${getTimeAgo(r.created_at)}</span></div>
+            <p style="font-size:.78rem;color:#a1a1aa;line-height:1.5;white-space:pre-wrap;padding-left:1.65rem">${escHtml(r.content)}</p>
+          </div>`;
+        }).join('')}
+      </div>` : '<p style="font-size:.78rem;color:#52525b;text-align:center;padding:.5rem">No replies yet</p>'}
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1.25rem;border-top:1px solid rgba(139,92,246,.08);padding-top:1rem">
+      <select onchange="updateIdeaStatus('${idea.id}', this.value); closeIdeaModal();" class="filter-select" style="min-width:auto">
+        <option value="" disabled selected>Change status…</option>
+        <option value="open">Open</option>
+        <option value="under_review">Under Review</option>
+        <option value="planned">Planned</option>
+        <option value="implemented">Implemented</option>
+        <option value="declined">Declined</option>
+      </select>
+      <button class="btn-danger btn-sm" onclick="deleteIdea('${idea.id}')"><i data-lucide="trash-2" style="width:13px;height:13px"></i>Delete idea</button>
+    </div>
+  `;
+  document.getElementById('ideaModal').classList.add('active');
+  lucide.createIcons();
+}
+function closeIdeaModal() { document.getElementById('ideaModal').classList.remove('active'); }
+
+async function deleteIdea(ideaId) {
+  if (!confirm('Delete this idea and all its replies?')) return;
+  await supabaseClient.from('idea_replies').delete().eq('idea_id', ideaId);
+  const { error } = await supabaseClient.from('ideas').delete().eq('id', ideaId);
+  if (error) { toast('Failed: ' + error.message, 'error'); return; }
+  logAction('DELETE_IDEA', ideaId, 'Idea + replies removed');
+  toast('Idea deleted', 'success');
+  closeIdeaModal();
+  loadIdeas();
+}
+
+// ===================== HUBS PAGE =====================
+async function loadHubs() {
+  const grid = document.getElementById('hubsGrid');
+  grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="spinner"></div>Loading hubs...</div>';
+
+  const { data: hubs, error } = await supabaseClient.from('innovator_hubs').select('*').order('created_at', { ascending: false });
+  if (error) { grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;color:#f87171">Error: ${escHtml(error.message)}</div>`; return; }
+  if (!hubs || !hubs.length) {
+    document.getElementById('hubsCountTag').textContent = '0 hubs';
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1">No innovator hubs created yet</div>';
+    return;
+  }
+
+  const hubIds = hubs.map(h => h.id);
+  const [{ data: memberships }, { data: messages }] = await Promise.all([
+    supabaseClient.from('innovator_hub_members').select('hub_id,user_id').in('hub_id', hubIds),
+    supabaseClient.from('innovator_messages').select('hub_id,id').in('hub_id', hubIds)
+  ]);
+  const memberCount = {};
+  (memberships || []).forEach(m => { memberCount[m.hub_id] = (memberCount[m.hub_id] || 0) + 1; });
+  const msgCount = {};
+  (messages || []).forEach(m => { msgCount[m.hub_id] = (msgCount[m.hub_id] || 0) + 1; });
+
+  document.getElementById('hubsCountTag').textContent = hubs.length + ' hubs';
+  grid.innerHTML = hubs.map(h => `
+    <div class="card" style="padding:1.2rem">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;margin-bottom:.55rem">
+        <h3 style="font-size:1rem;font-weight:700;color:#e4e4e7;word-break:break-word">${escHtml(h.name)}</h3>
+        <span class="tag">${escHtml(h.theme || 'Other')}</span>
+      </div>
+      <p style="font-size:.8rem;color:#a1a1aa;line-height:1.6;margin-bottom:.85rem;white-space:pre-wrap">${escHtml(h.description || 'No description')}</p>
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.75rem">
+        <span class="tag tag-blue">${memberCount[h.id] || 0} members</span>
+        <span class="tag tag-green">${msgCount[h.id] || 0} messages</span>
+      </div>
+      <div style="font-size:.7rem;color:#52525b;margin-bottom:.85rem">Created ${getTimeAgo(h.created_at)}</div>
+      <div style="display:flex;gap:.4rem">
+        <button class="btn-danger btn-sm" onclick="deleteHub('${h.id}','${escHtml(h.name).replace(/'/g, "\\'")}')"><i data-lucide="trash-2" style="width:12px;height:12px"></i>Delete hub</button>
+      </div>
+    </div>
+  `).join('');
+  lucide.createIcons();
+}
+
+async function deleteHub(hubId, name) {
+  if (!confirm(`Delete hub "${name}"? All members and messages will be removed.`)) return;
+  await supabaseClient.from('innovator_messages').delete().eq('hub_id', hubId);
+  await supabaseClient.from('innovator_hub_members').delete().eq('hub_id', hubId);
+  const { error } = await supabaseClient.from('innovator_hubs').delete().eq('id', hubId);
+  if (error) { toast('Failed: ' + error.message, 'error'); return; }
+  logAction('DELETE_HUB', name, `Hub ID: ${hubId}`);
+  toast('Hub deleted', 'success');
+  loadHubs();
+}
+
+// ===================== SESSIONS / TRAFFIC PAGE =====================
+async function loadSessions() {
+  const onlineBody = document.getElementById('onlineTableBody');
+  const recentBody = document.getElementById('recentSessionsTableBody');
+  onlineBody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1.5rem"><div class="spinner"></div>Loading...</td></tr>';
+  recentBody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:1.5rem"><div class="spinner"></div>Loading...</td></tr>';
+
+  const now = new Date();
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 86400000);
+
+  const [{ data: online }, { data: recent }, { data: allSessions }] = await Promise.all([
+    supabaseClient.from('site_sessions').select('id,user_id,email,website,user_agent,created_at,profiles:user_id(username,display_name,profile_pic)').eq('is_online', true).order('created_at', { ascending: false }).limit(100),
+    supabaseClient.from('site_sessions').select('id,user_id,email,website,user_agent,created_at,ended_at,duration_secs,is_online,profiles:user_id(username,display_name,profile_pic)').order('created_at', { ascending: false }).limit(50),
+    supabaseClient.from('site_sessions').select('id,website,created_at,duration_secs,is_online').gte('created_at', thirtyDaysAgo.toISOString()).limit(2000)
+  ]);
+
+  // KPIs
+  document.getElementById('kpiLiveNow').textContent = (online || []).length;
+  document.getElementById('kpiTotalSessions').textContent = (allSessions || []).length.toLocaleString();
+  const durations = (allSessions || []).filter(s => s.duration_secs).map(s => s.duration_secs);
+  const avgDur = durations.length ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length) : 0;
+  document.getElementById('kpiAvgDuration').textContent = avgDur ? formatDuration(avgDur) : '—';
+  const sitesTracked = new Set((allSessions || []).map(s => s.website).filter(Boolean));
+  document.getElementById('kpiSitesTracked').textContent = sitesTracked.size;
+
+  // Online table
+  if (!online || !online.length) {
+    onlineBody.innerHTML = '<tr><td colspan="5" class="empty-state">No users online right now</td></tr>';
+  } else {
+    onlineBody.innerHTML = online.map(s => {
+      const p = s.profiles || {};
+      const displayName = p.display_name || p.username || s.email || 'Guest';
+      const isGuest = !s.user_id;
+      return `<tr>
+        <td>${isGuest ? '<span class="tag tag-gray">Guest</span>' : escHtml(displayName)}</td>
+        <td class="muted">${escHtml(s.email || '—')}</td>
+        <td><span class="tag tag-blue">${escHtml(s.website || '—')}</span></td>
+        <td class="muted">${detectDevice(s.user_agent)}</td>
+        <td class="muted">${getTimeAgo(s.created_at)}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Recent sessions
+  if (!recent || !recent.length) {
+    recentBody.innerHTML = '<tr><td colspan="6" class="empty-state">No sessions recorded yet</td></tr>';
+  } else {
+    recentBody.innerHTML = recent.map(s => {
+      const p = s.profiles || {};
+      const displayName = p.display_name || p.username || s.email || 'Guest';
+      const isGuest = !s.user_id;
+      return `<tr>
+        <td>${isGuest ? '<span class="tag tag-gray">Guest</span>' : escHtml(displayName)}</td>
+        <td><span class="tag tag-blue">${escHtml(s.website || '—')}</span></td>
+        <td class="muted">${detectDevice(s.user_agent)}</td>
+        <td>${s.duration_secs ? formatDuration(s.duration_secs) : (s.is_online ? '<span class="tag tag-green">active</span>' : '—')}</td>
+        <td class="muted">${getTimeAgo(s.created_at)}</td>
+        <td class="muted">${s.ended_at ? getTimeAgo(s.ended_at) : (s.is_online ? '<span class="pulse-dot" style="display:inline-block"></span>' : '—')}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Sessions trend (last 14 days)
+  const dates14 = lastNDates(14);
+  const sessionCounts = dates14.map(d => (allSessions || []).filter(s => {
+    const sc = new Date(s.created_at);
+    return sc >= new Date(d.getTime()) && sc < new Date(d.getTime() + 86400000);
+  }).length);
+  destroyChart('sessionsTrend');
+  charts.sessionsTrend = new Chart(document.getElementById('chartSessionsTrend'), {
+    type: 'line',
+    data: {
+      labels: dates14.map(shortLabel),
+      datasets: [{
+        label: 'Sessions', data: sessionCounts,
+        borderColor: CHART_COLORS.green, backgroundColor: 'rgba(74,222,128,.15)',
+        fill: true, tension: .35, borderWidth: 2, pointRadius: 0, pointHoverRadius: 4
+      }]
+    },
+    options: COMMON_CHART_OPTS
+  });
+
+  // Visits by site (last 30 days)
+  const visitsBySite = {};
+  (allSessions || []).forEach(s => { if (s.website) visitsBySite[s.website] = (visitsBySite[s.website] || 0) + 1; });
+  const visitLabels = Object.keys(visitsBySite);
+  const visitValues = Object.values(visitsBySite);
+  destroyChart('visitsBySite');
+  charts.visitsBySite = new Chart(document.getElementById('chartVisitsBySite'), {
+    type: 'bar',
+    data: {
+      labels: visitLabels.length ? visitLabels : ['No data'],
+      datasets: [{
+        label: 'Visits', data: visitValues.length ? visitValues : [0],
+        backgroundColor: CHART_PALETTE, borderRadius: 4
+      }]
+    },
+    options: {
+      ...COMMON_CHART_OPTS,
+      indexAxis: 'y',
+      scales: {
+        x: { ticks: { color: '#52525b' }, grid: { color: 'rgba(139,92,246,.05)' }, beginAtZero: true },
+        y: { ticks: { color: '#a1a1aa', font: { family: 'Inter', size: 11 } }, grid: { display: false } }
+      }
+    }
+  });
+
+  lucide.createIcons();
+}
+
+// ===================== TOKENS PAGE =====================
+async function loadTokensPage() {
+  const tbody = document.getElementById('tokensTableBody');
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem"><div class="spinner"></div>Loading...</td></tr>';
+
+  const { data: profiles, error } = await supabaseClient.from('profiles').select('id,username,display_name,email,tokens,followers,profile_pic,created_at').order('tokens', { ascending: false }).limit(500);
+  if (error) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;color:#f87171">Error: ${escHtml(error.message)}</td></tr>`; return; }
+
+  const { data: postCounts } = await supabaseClient.from('posts').select('user_id');
+  const postCountMap = {};
+  (postCounts || []).forEach(p => { postCountMap[p.user_id] = (postCountMap[p.user_id] || 0) + 1; });
+
+  const totalSupply = (profiles || []).reduce((s, u) => s + (u.tokens || 0), 0);
+  const avg = profiles && profiles.length ? Math.round(totalSupply / profiles.length) : 0;
+  const topHolder = profiles && profiles.length ? (profiles[0].display_name || profiles[0].username || '—') : '—';
+  document.getElementById('kpiTotalSupply').textContent = totalSupply.toLocaleString();
+  document.getElementById('kpiAvgTokens').textContent = avg.toLocaleString();
+  document.getElementById('kpiTopHolder').textContent = truncate(topHolder, 18);
+
+  // Distribution buckets
+  const buckets = { '0': 0, '1-499': 0, '500-999': 0, '1000-1999': 0, '2000-4999': 0, '5000+': 0 };
+  (profiles || []).forEach(u => {
+    const t = u.tokens || 0;
+    if (t === 0) buckets['0']++;
+    else if (t < 500) buckets['1-499']++;
+    else if (t < 1000) buckets['500-999']++;
+    else if (t < 2000) buckets['1000-1999']++;
+    else if (t < 5000) buckets['2000-4999']++;
+    else buckets['5000+']++;
+  });
+  destroyChart('tokenDist');
+  charts.tokenDist = new Chart(document.getElementById('chartTokenDist'), {
+    type: 'bar',
+    data: {
+      labels: Object.keys(buckets),
+      datasets: [{
+        label: 'Users', data: Object.values(buckets),
+        backgroundColor: 'rgba(251,191,36,.6)', borderColor: CHART_COLORS.yellow, borderWidth: 1, borderRadius: 4
+      }]
+    },
+    options: COMMON_CHART_OPTS
+  });
+
+  // Top 15 holders
+  const top15 = (profiles || []).slice(0, 15);
+  destroyChart('topHolders');
+  charts.topHolders = new Chart(document.getElementById('chartTopHolders'), {
+    type: 'bar',
+    data: {
+      labels: top15.map(u => truncate(u.username || u.display_name || 'Unknown', 14)),
+      datasets: [{
+        label: 'Tokens', data: top15.map(u => u.tokens || 0),
+        backgroundColor: 'rgba(139,92,246,.6)', borderColor: CHART_COLORS.purple, borderWidth: 1, borderRadius: 4
+      }]
+    },
+    options: {
+      ...COMMON_CHART_OPTS,
+      indexAxis: 'y',
+      scales: {
+        x: { ticks: { color: '#52525b' }, grid: { color: 'rgba(139,92,246,.05)' }, beginAtZero: true },
+        y: { ticks: { color: '#a1a1aa', font: { family: 'Inter', size: 11 } }, grid: { display: false } }
+      }
+    }
+  });
+
+  // Table
+  if (!profiles || !profiles.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No users found</td></tr>';
+    return;
+  }
+  tbody.innerHTML = profiles.map(u => {
+    const initials = (u.display_name || u.username || 'U').charAt(0).toUpperCase();
+    const avatarHtml = u.profile_pic ? `<img src="${u.profile_pic}" onerror="this.parentElement.textContent='${initials}'">` : initials;
+    return `<tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:.55rem">
+          <div class="avatar avatar-sm" style="overflow:hidden">${avatarHtml}</div>
+          <div style="font-weight:600;color:#e4e4e7">${escHtml(u.display_name || 'Unknown')}</div>
+        </div>
+      </td>
+      <td class="muted">@${escHtml(u.username || 'user')}</td>
+      <td><span class="tag tag-yellow">${(u.tokens || 0).toLocaleString()}</span></td>
+      <td>${postCountMap[u.id] || 0}</td>
+      <td>${u.followers?.length || 0}</td>
+      <td><button class="btn-outline btn-sm" onclick="adjustTokens('${u.id}')"><i data-lucide="edit-3" style="width:12px;height:12px"></i>Adjust</button></td>
+    </tr>`;
+  }).join('');
+  lucide.createIcons();
+}
+
+// ===================== ADMIN CHAT =====================
+let adminChatReplyTo = null;
+let adminChatChannel = null;
+let adminChatRows = [];
+
+function escapeAttribute(value) {
+  return String(value ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&#39;');
+}
+
+function setAdminChatReply(messageId) {
+  const message = adminChatRows.find(row => row.id === messageId);
+  if (!message) return;
+  adminChatReplyTo = message.id;
+  const profile = message._profile || {};
+  const name = profile.display_name || profile.username || 'Admin';
+  const preview = truncate(message.content, 100);
+  const banner = document.getElementById('adminChatReplyingTo');
+  banner.innerHTML = `Replying to <strong style="color:#e4e4e7">${escHtml(name)}</strong>: ${escHtml(preview)} <button class="btn-ghost" onclick="clearAdminChatReply()" style="float:right;padding:.1rem .3rem" aria-label="Cancel reply">Cancel</button>`;
+  banner.style.display = 'block';
+  document.getElementById('adminChatInput').focus();
+}
+
+function clearAdminChatReply() {
+  adminChatReplyTo = null;
+  const banner = document.getElementById('adminChatReplyingTo');
+  banner.style.display = 'none';
+  banner.textContent = '';
+}
+
+function renderAdminChat() {
+  const container = document.getElementById('adminChatMessages');
+  if (!adminChatRows.length) {
+    container.innerHTML = '<div class="empty-state" style="margin:auto">No messages yet. Start the conversation.</div>';
+    return;
+  }
+  const byId = new Map(adminChatRows.map(message => [message.id, message]));
+  container.innerHTML = adminChatRows.map(message => {
+    const profile = message._profile || {};
+    const name = profile.display_name || profile.username || 'Admin';
+    const initials = escHtml((name || 'A').charAt(0).toUpperCase());
+    let avatar = `<div class="avatar avatar-sm">${initials}</div>`;
+    if (profile.profile_pic) {
+      try {
+        const imageUrl = new URL(profile.profile_pic);
+        if (imageUrl.protocol === 'https:') avatar = `<div class="avatar avatar-sm"><img src="${escapeAttribute(imageUrl.href)}" alt="" onerror="this.parentElement.textContent='${initials}'"></div>`;
+      } catch (e) {}
+    }
+    const parent = message.reply_to ? byId.get(message.reply_to) : null;
+    const parentName = parent ? ((parent._profile?.display_name || parent._profile?.username) || 'Admin') : '';
+    const reactions = message.reactions && typeof message.reactions === 'object' ? message.reactions : {};
+    const reactionHtml = Object.entries(reactions).filter(([emoji, users]) => ['👍','❤️','😂','🎉'].includes(emoji) && Array.isArray(users) && users.length).map(([emoji, users]) => {
+      const active = currentUser && users.includes(currentUser.id);
+      return `<button class="btn-ghost" onclick="toggleAdminReaction('${message.id}','${escapeAttribute(emoji)}')" style="padding:.2rem .45rem;border:1px solid rgba(139,92,246,.18);border-radius:999px;color:${active ? '#c4b5fd' : '#a1a1aa'};background:${active ? 'rgba(139,92,246,.16)' : 'transparent'}">${emoji} ${users.length}</button>`;
+    }).join('');
+    return `<article style="display:flex;align-items:flex-start;gap:.7rem;max-width:100%">
+      ${avatar}
+      <div style="min-width:0;flex:1;background:rgba(139,92,246,.045);border:1px solid rgba(139,92,246,.1);border-radius:.8rem;padding:.8rem .95rem">
+        <div class="row-flex" style="gap:.55rem;margin-bottom:.45rem">
+          <strong style="font-size:.84rem;color:#e4e4e7">${escHtml(name)}</strong>
+          <span style="font-size:.7rem;color:#71717a">@${escHtml(profile.username || 'admin')}</span>
+          <span style="font-size:.7rem;color:#52525b">${formatDate(message.created_at)}</span>
+        </div>
+        ${parent ? `<div style="font-size:.74rem;color:#a1a1aa;border-left:2px solid #8b5cf6;padding:.35rem .6rem;margin-bottom:.5rem;background:rgba(139,92,246,.05)">Replying to ${escHtml(parentName)}: ${escHtml(truncate(parent.content, 120))}</div>` : ''}
+        <div style="font-size:.88rem;color:#d4d4d8;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere">${escHtml(message.content)}</div>
+        <div class="row-flex" style="gap:.35rem;margin-top:.65rem">
+          ${reactionHtml}
+          ${['👍','❤️','😂','🎉'].map(emoji => `<button class="btn-ghost" onclick="toggleAdminReaction('${message.id}','${emoji}')" title="React ${emoji}" style="padding:.2rem .35rem;font-size:.9rem">${emoji}</button>`).join('')}
+          <span class="spacer"></span>
+          <button class="btn-ghost" onclick="setAdminChatReply('${message.id}')" style="padding:.25rem .45rem;font-size:.73rem"><i data-lucide="reply" style="width:13px;height:13px"></i>Reply</button>
+        </div>
+      </div>
+    </article>`;
+  }).join('');
+  lucide.createIcons();
+}
+
+async function loadAdminChat() {
+  const container = document.getElementById('adminChatMessages');
+  const shouldScroll = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+  if (!adminChatRows.length) container.innerHTML = '<div class="empty-state"><div class="spinner"></div>Loading chat...</div>';
+  const { data: messages, error } = await supabaseClient.from('adm_msg')
+    .select('id,user_id,content,reply_to,reactions,created_at')
+    .order('created_at', { ascending: true }).limit(500);
+  if (error) {
+    container.innerHTML = `<div class="empty-state" style="color:#f87171">Could not load admin chat: ${escHtml(error.message)}</div>`;
+    return;
+  }
+  const rows = messages || [];
+  const userIds = [...new Set(rows.map(message => message.user_id).filter(Boolean))];
+  let profilesById = new Map();
+  if (userIds.length) {
+    const { data: profiles } = await supabaseClient.from('profiles').select('id,username,display_name,profile_pic').in('id', userIds);
+    profilesById = new Map((profiles || []).map(profile => [profile.id, profile]));
+  }
+  adminChatRows = rows.map(message => ({ ...message, _profile: profilesById.get(message.user_id) || {} }));
+  renderAdminChat();
+  if (shouldScroll) container.scrollTop = container.scrollHeight;
+
+  if (!adminChatChannel) {
+    adminChatChannel = supabaseClient.channel('admin-chat-messages')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'adm_msg' }, () => {
+        if (document.getElementById('page-admin-chat').classList.contains('active')) loadAdminChat();
+      })
+      .subscribe();
+  }
+}
+
+async function sendAdminMessage() {
+  const input = document.getElementById('adminChatInput');
+  const button = document.getElementById('adminChatSendBtn');
+  const content = input.value.trim();
+  if (!content) return;
+  if (!currentUser) {
+    toast('Sign in before sending a chat message.', 'error');
+    return;
+  }
+
+  button.disabled = true;
+  try {
+    const { error } = await supabaseClient.from('adm_msg').insert({
+      user_id: currentUser.id,
+      content,
+      reply_to: adminChatReplyTo
+    });
+    if (error) {
+      toast('Could not send message: ' + error.message, 'error');
+      return;
+    }
+    input.value = '';
+    clearAdminChatReply();
+    await loadAdminChat();
+    const container = document.getElementById('adminChatMessages');
+    container.scrollTop = container.scrollHeight;
+  } catch (error) {
+    toast('Could not send message: ' + (error.message || String(error)), 'error');
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function toggleAdminReaction(messageId, emoji) {
+  const message = adminChatRows.find(row => row.id === messageId);
+  if (!message || !currentUser) return;
+  const reactions = message.reactions && typeof message.reactions === 'object' ? JSON.parse(JSON.stringify(message.reactions)) : {};
+  const users = Array.isArray(reactions[emoji]) ? reactions[emoji] : [];
+  reactions[emoji] = users.includes(currentUser.id) ? users.filter(id => id !== currentUser.id) : [...users, currentUser.id];
+  if (!reactions[emoji].length) delete reactions[emoji];
+  const { error } = await supabaseClient.from('adm_msg').update({ reactions }).eq('id', messageId);
+  if (error) { toast('Could not update reaction: ' + error.message, 'error'); return; }
+  message.reactions = reactions;
+  renderAdminChat();
+}
+
+// ===================== SETTINGS PAGE =====================
+function loadSettingsPage() {
+  const info = document.getElementById('settingsAccountInfo');
+  if (!currentProfile) { info.innerHTML = '<p style="color:#52525b">No profile loaded</p>'; return; }
+  info.innerHTML = `
+    <div style="display:flex;align-items:center;gap:.65rem"><span style="font-size:.78rem;color:#52525b;min-width:90px">Display name</span><span style="font-weight:600;color:#e4e4e7">${escHtml(currentProfile.display_name || '—')}</span></div>
+    <div style="display:flex;align-items:center;gap:.65rem"><span style="font-size:.78rem;color:#52525b;min-width:90px">Username</span><span style="font-weight:600;color:#e4e4e7">@${escHtml(currentProfile.username || '—')}</span></div>
+    <div style="display:flex;align-items:center;gap:.65rem"><span style="font-size:.78rem;color:#52525b;min-width:90px">Email</span><span style="font-weight:600;color:#e4e4e7;word-break:break-all">${escHtml(currentUser?.email || '—')}</span></div>
+    <div style="display:flex;align-items:center;gap:.65rem"><span style="font-size:.78rem;color:#52525b;min-width:90px">User ID</span><code style="font-size:.72rem;background:rgba(139,92,246,.08);padding:.2rem .45rem;border-radius:.3rem;color:#a78bfa;word-break:break-all">${escHtml(currentUser?.id || '—')}</code></div>
+    <div style="display:flex;align-items:center;gap:.65rem"><span style="font-size:.78rem;color:#52525b;min-width:90px">Tokens</span><span class="tag tag-yellow">${(currentProfile.tokens || 0).toLocaleString()}</span></div>
+  `;
+}
+
+async function exportSnapshot() {
+  toast('Building snapshot…', 'info');
+  const tables = ['profiles', 'posts', 'ideas', 'idea_replies', 'comm_sites', 'innovator_hubs', 'innovator_hub_members', 'innovator_messages', 'site_sessions'];
+  const snapshot = { exported_at: new Date().toISOString(), admin: currentUser?.email, tables: {} };
+  for (const t of tables) {
+    try {
+      const { data, error } = await supabaseClient.from(t).select('*').limit(1000);
+      snapshot.tables[t] = error ? { error: error.message } : { count: data?.length || 0, rows: data || [] };
+    } catch (e) { snapshot.tables[t] = { error: String(e) }; }
+  }
+  logAction('EXPORT_SNAPSHOT', 'all tables', `Exported ${Object.keys(snapshot.tables).length} tables`);
+  const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `epsilon-admin-snapshot-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  toast('Snapshot downloaded', 'success');
+}
+
+// ===================== INIT =====================
+async function initApp() {
+  loadAuditLog();
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (session) {
+    currentUser = session.user;
+    const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
+    currentProfile = profile || { username: currentUser.user_metadata?.username, display_name: currentUser.user_metadata?.display_name };
+    document.getElementById('authPage').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    updateSidebar();
+    loadDashboard();
+  } else {
+    document.getElementById('authPage').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+  }
+  lucide.createIcons();
+}
+
+supabaseClient.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'SIGNED_IN' && session) {
+    currentUser = session.user;
+    await new Promise(r => setTimeout(r, 300));
+    const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
+    currentProfile = profile || { username: currentUser.user_metadata?.username, display_name: currentUser.user_metadata?.display_name };
+    document.getElementById('authPage').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    updateSidebar();
+    loadDashboard();
+    lucide.createIcons();
+  } else if (event === 'SIGNED_OUT') {
+    currentUser = null;
+    currentProfile = null;
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('authPage').style.display = 'flex';
+  }
+});
+
+// Modal close on overlay click
+document.getElementById('userModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeUserModal(); });
+
+// Start
+initApp();
+</script>
+</body>
+</html>
