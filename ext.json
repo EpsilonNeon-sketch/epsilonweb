@@ -1,11 +1,47 @@
 [
   {
-    "name": "Quick Notes",
-    "desc": "A tiny notepad that saves notes to localStorage.",
-    "icon": "https://api.iconify.design/lucide/sticky-note.svg?color=%238b5cf6",
-    "site": "Epsilon Hub",
+    "name": "Epsilon Learn Study Timer",
+    "desc": "A minimalist Pomodoro timer to help you stay focused during learning sessions.",
+    "icon": "https://api.iconify.design/lucide/timer.svg?color=%2322c55e",
+    "site": "Epsilon Learn",
     "author": "Warren Adrian",
-    "nav_btn": "Quick Notes",
-    "html": "<!DOCTYPE html><html><head><style>body{font-family:sans-serif;padding:1rem}</style></head><body><h2>Notes</h2><textarea id=\"n\" style=\"width:100%;height:60vh\"></textarea><button onclick=\"localStorage.setItem('ep_notes',document.getElementById('n').value)\">Save</button><script>document.getElementById('n').value=localStorage.getItem('ep_notes')||''<\/script></body></html>"
+    "nav_btn": "Focus Timer",
+    "html": "<!DOCTYPE html><html><head><style>body{font-family:sans-serif;padding:1rem;background:#052e16;color:#f0fdf4;display:flex;flex-direction:column;align-items:center;justify-content:center;height:90vh}h1{font-size:3rem;margin:1rem 0}button{background:#22c55e;color:#052e16;border:none;padding:0.5rem 1rem;font-weight:bold;cursor:pointer;border-radius:4px;margin:0.2rem}</style></head><body><h2>Study Timer</h2><h1 id=\"t\">25:00</h1><div><button onclick=\"s()\">Start</button><button onclick=\"p()\">Pause</button><button onclick=\"r()\">Reset</button></div><script>let t=1500,i=null;function u(){document.getElementById('t').innerText=Math.floor(t/60).toString().padStart(2,'0')+':'+(t%60).toString().padStart(2,'0')}function s(){if(!i)i=setInterval(()=>{if(t>0){t--;u()}else clearInterval(i)},1000)}function p(){clearInterval(i);i=null}function r(){p();t=1500;u()}</script></body></html>"
+  },
+  {
+    "name": "Epsilon Learn Flashcards",
+    "desc": "Quickly create, flip, and save flashcards to test your knowledge.",
+    "icon": "https://api.iconify.design/lucide/cards.svg?color=%2322c55e",
+    "site": "Epsilon Learn",
+    "author": "Warren Adrian",
+    "nav_btn": "Flashcards",
+    "html": "<!DOCTYPE html><html><head><style>body{font-family:sans-serif;padding:1rem;background:#052e16;color:#f0fdf4}.card{border:1px solid #22c55e;padding:2rem;text-align:center;font-size:1.2rem;margin:1rem 0;cursor:pointer;border-radius:8px;background:#14532d;min-height:80px;display:flex;align-items:center;justify-content:center}input,button{padding:0.5rem;margin:0.2rem;border-radius:4px;border:none}button{background:#22c55e;color:#052e16;font-weight:bold;cursor:pointer}</style></head><body><h2>Flashcards</h2><input id=\"q\" placeholder=\"Question\"><input id=\"a\" placeholder=\"Answer\"><button onclick=\"add()\">Add Card</button><div id=\"c\" class=\"card\" onclick=\"flip()\">Click 'Add Card' to start!</div><script>let cards=JSON.parse(localStorage.getItem('ep_fc')||'[]'),idx=0,showA=false;function save(){localStorage.setItem('ep_fc',JSON.stringify(cards))}function add(){let q=document.getElementById('q').value,a=document.getElementById('a').value;if(q&&a){cards.push({q,a});save();document.getElementById('q').value='';document.getElementById('a').value='';idx=cards.length-1;render()}}function flip(){if(!cards.length)return;showA=!showA;render()}function render(){if(!cards.length)return;document.getElementById('c').innerText=showA?cards[idx].a:cards[idx].q}render()</script></body></html>"
+  },
+  {
+    "name": "Epsilon Learn Vocabulary Log",
+    "desc": "Save and store new key terms and definitions in your local database.",
+    "icon": "https://api.iconify.design/lucide/book-marked.svg?color=%2322c55e",
+    "site": "Epsilon Learn",
+    "author": "Warren Adrian",
+    "nav_btn": "Vocab Log",
+    "html": "<!DOCTYPE html><html><head><style>body{font-family:sans-serif;padding:1rem;background:#052e16;color:#f0fdf4}input,button{padding:0.5rem;margin:0.2rem;border-radius:4px;border:none}button{background:#22c55e;color:#052e16;font-weight:bold;cursor:pointer}ul{list-style:none;padding:0}li{background:#14532d;margin:0.5rem 0;padding:0.5rem;border-radius:4px;border-left:4px solid #22c55e}</style></head><body><h2>Vocab Log</h2><input id=\"w\" placeholder=\"Word\"><input id=\"d\" placeholder=\"Definition\"><button onclick=\"add()\">Save Word</button><ul id=\"l\"></ul><script>let v=JSON.parse(localStorage.getItem('ep_vocab')||'[]');function render(){document.getElementById('l').innerHTML=v.map(i=>`<li><b>${i.w}</b>: ${i.d}</li>`).join('')}function add(){let w=document.getElementById('w').value,d=document.getElementById('d').value;if(w&&d){v.push({w,d});localStorage.setItem('ep_vocab',JSON.stringify(v));render();document.getElementById('w').value='';document.getElementById('d').value=''}}render()</script></body></html>"
+  },
+  {
+    "name": "Epsilon Learn Topic Checklist",
+    "desc": "Track topics you need to master with an interactive study roadmap checklist.",
+    "icon": "https://api.iconify.design/lucide/check-square.svg?color=%2322c55e",
+    "site": "Epsilon Learn",
+    "author": "Warren Adrian",
+    "nav_btn": "Checklist",
+    "html": "<!DOCTYPE html><html><head><style>body{font-family:sans-serif;padding:1rem;background:#052e16;color:#f0fdf4}input,button{padding:0.5rem;margin:0.2rem;border-radius:4px;border:none}button{background:#22c55e;color:#052e16;font-weight:bold;cursor:pointer}ul{list-style:none;padding:0}li{padding:0.4rem;display:flex;align-items:center;gap:0.5rem}</style></head><body><h2>Topic Checklist</h2><input id=\"t\" placeholder=\"New topic...\"><button onclick=\"add()\">Add</button><ul id=\"l\"></ul><script>let items=JSON.parse(localStorage.getItem('ep_checklist')||'[]');function render(){document.getElementById('l').innerHTML=items.map((it,i)=>`<li><input type=\"checkbox\" ${it.done?'checked':''} onchange=\"toggle(${i})\"> <span style=\"${it.done?'text-decoration:line-through;opacity:0.6':''}\">${it.txt}</span></li>`).join('')}function add(){let txt=document.getElementById('t').value;if(txt){items.push({txt,done:false});save();document.getElementById('t').value=''}}function toggle(i){items[i].done=!items[i].done;save()}function save(){localStorage.setItem('ep_checklist',JSON.stringify(items));render()}render()</script></body></html>"
+  },
+  {
+    "name": "Epsilon Learn Formula Sheet",
+    "desc": "Keep vital formulas and cheat sheets quickly accessible during studies.",
+    "icon": "https://api.iconify.design/lucide/binary.svg?color=%2322c55e",
+    "site": "Epsilon Learn",
+    "author": "Warren Adrian",
+    "nav_btn": "Formulas",
+    "html": "<!DOCTYPE html><html><head><style>body{font-family:sans-serif;padding:1rem;background:#052e16;color:#f0fdf4}textarea{width:100%;height:55vh;background:#14532d;color:#f0fdf4;border:1px solid #22c55e;border-radius:4px;padding:0.5rem;font-family:monospace}button{background:#22c55e;color:#052e16;border:none;padding:0.5rem 1rem;font-weight:bold;cursor:pointer;border-radius:4px;margin-top:0.5rem}</style></head><body><h2>Formula Sheet</h2><textarea id=\"f\" placeholder=\"Paste equations, syntax, or quick formulas here...\"></textarea><br><button onclick=\"localStorage.setItem('ep_formulas',document.getElementById('f').value)\">Save Formulas</button><script>document.getElementById('f').value=localStorage.getItem('ep_formulas')||''<\/script></body></html>"
   }
 ]
